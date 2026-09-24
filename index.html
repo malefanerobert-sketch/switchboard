@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwitchBoard — My Control Room</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--fd:'Space Grotesk',sans-serif;--fb:'DM Sans',sans-serif}
+body{font-family:var(--fb);background:#0b1416;color:#e9f5f2;min-height:100vh}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:14px}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:10px}::-webkit-scrollbar-thumb{background:#2a3d42;border-radius:6px}
+a{color:inherit}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.8)}}
+@keyframes dash{to{stroke-dashoffset:-16}}
+@keyframes wv{0%,100%{height:6px}50%{height:26px}}
+@keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+#toasts{position:fixed;right:20px;bottom:20px;z-index:999;display:flex;flex-direction:column;gap:10px}
+.toast{display:flex;align-items:center;gap:10px;background:#10262a;border:1px solid rgba(46,230,195,.35);color:#e9f5f2;padding:12px 16px;border-radius:10px;font-size:13.5px;max-width:340px;box-shadow:0 12px 32px rgba(0,0,0,.45);opacity:0;transform:translateY(12px);transition:.3s}
+.toast.in{opacity:1;transform:none}
+.toast .td{width:8px;height:8px;border-radius:50%;flex:none}
+.t-ok .td{background:#2ee6c3;box-shadow:0 0 10px #2ee6c3}.t-warn .td{background:#ffb454}.t-bad .td{background:#ff7a6b}
+/* gate */
+#gate{min-height:100vh;display:grid;place-items:center;background:radial-gradient(600px 400px at 80% 15%,rgba(255,180,84,.07),transparent 60%),radial-gradient(700px 500px at 15% 85%,rgba(46,230,195,.08),transparent 60%),radial-gradient(rgba(233,245,242,.05) 1px,transparent 1px) 0 0/26px 26px,#0b1416}
+.gate-card{width:min(440px,92vw);border:1px solid rgba(233,245,242,.1);border-radius:18px;padding:34px;background:linear-gradient(160deg,#101f23,#0d181b);animation:fadeUp .5s both;text-align:center}
+.gate-logo{width:54px;height:54px;border-radius:14px;margin:0 auto 16px;background:linear-gradient(135deg,#0f2a2c,#123a37);border:1px solid rgba(46,230,195,.4);display:grid;place-items:center;box-shadow:0 0 24px rgba(46,230,195,.18)}
+.gate-card h1{font-family:var(--fd);font-size:22px;margin-bottom:6px}
+.gate-card p{font-size:13.5px;color:#8fb0ac;margin-bottom:22px;line-height:1.55}
+.enter-btn{width:100%;background:linear-gradient(135deg,#12695a,#0e9579);color:#eafffa;font-family:var(--fd);font-weight:700;font-size:15px;padding:14px;border-radius:11px;transition:.2s;box-shadow:0 8px 22px rgba(46,230,195,.2)}
+.enter-btn:hover{transform:translateY(-2px)}
+.gate-alt{margin-top:18px;font-size:12.5px;color:#557a75}
+.gate-alt a{color:#7fa39e}
+/* app shell */
+#app{display:flex;min-height:100vh}
+.c-side{width:222px;flex:none;border-right:1px solid rgba(233,245,242,.08);padding:22px 14px;display:flex;flex-direction:column;gap:4px;background:#0a1214}
+.c-brand{display:flex;align-items:center;gap:10px;padding:4px 10px 20px}
+.c-brand .gate-logo{width:36px;height:36px;border-radius:10px;margin:0}
+.c-brand b{font-family:var(--fd);font-size:16px}
+.cnav{display:flex;flex-direction:column;gap:3px}
+.cnav button{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:10px;color:#7fa39e;font-size:14px;font-weight:500;transition:.18s;text-align:left}
+.cnav button:hover{background:rgba(46,230,195,.07);color:#cfe8e3}
+.cnav button.act{background:rgba(46,230,195,.12);color:#eafffa;box-shadow:inset 2px 0 0 #2ee6c3}
+.c-side-foot{margin-top:auto;padding:14px 10px 0;border-top:1px solid rgba(233,245,242,.07);font-size:11.5px;color:#557a75;line-height:1.6}
+.c-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.c-top{display:flex;align-items:center;gap:14px;padding:16px 28px;border-bottom:1px solid rgba(233,245,242,.08);background:rgba(13,23,26,.75);position:sticky;top:0;z-index:20;flex-wrap:wrap}
+.c-top .biz{font-family:var(--fd);font-size:17px;font-weight:600}
+.c-top .biz small{display:block;font-family:var(--fb);font-weight:400;font-size:11.5px;color:#7fa39e}
+.live-badge{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.14em;padding:6px 12px;border-radius:99px;border:1px solid rgba(46,230,195,.4);color:#2ee6c3;background:rgba(46,230,195,.08)}
+.live-badge i{width:7px;height:7px;border-radius:50%;background:#2ee6c3;animation:pulse 1.6s infinite}
+.live-badge.off{border-color:rgba(255,122,107,.4);color:#ff9d92;background:rgba(255,122,107,.07)}
+.live-badge.off i{background:#ff7a6b}
+.conn-chip{font-size:10px;font-weight:800;letter-spacing:.12em;padding:5px 11px;border-radius:99px;cursor:pointer}
+.conn-demo{background:rgba(255,180,84,.12);color:#ffcf8f;border:1px solid rgba(255,180,84,.4)}
+.conn-live{background:rgba(46,230,195,.12);color:#7df5dd;border:1px solid rgba(46,230,195,.4)}
+.c-top .clock{margin-left:auto;font-family:var(--fd);font-size:14px;color:#8fb0ac;letter-spacing:.06em}
+.top-btn{font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:8px;border:1px solid rgba(233,245,242,.14);color:#a9c6c1;transition:.18s;text-decoration:none;display:inline-block}
+.top-btn:hover{border-color:#2ee6c3;color:#eafffa;transform:translateY(-1px)}
+.c-views{padding:22px 28px 60px;overflow-y:auto;flex:1}
+.c-view{display:none}.c-view.on{display:block;animation:fadeUp .35s both}
+/* connect bar */
+.cb{border:1px solid rgba(255,180,84,.3);background:rgba(255,180,84,.05);border-radius:12px;padding:13px 16px;margin-bottom:18px;flex-wrap:wrap;display:flex;gap:10px;align-items:center}
+.cb.live{border-color:rgba(46,230,195,.35);background:rgba(46,230,195,.05)}
+.cb input{background:#13262b;border:1px solid rgba(233,245,242,.14);color:#e9f5f2;border-radius:8px;padding:9px 12px;flex:1;min-width:180px}
+.cb select{background:#13262b;border:1px solid rgba(233,245,242,.14);color:#e9f5f2;border-radius:8px;padding:9px 12px}
+.cb-btn{background:linear-gradient(135deg,#12695a,#0e9579);color:#eafffa;font-weight:700;font-size:13px;padding:9px 16px;border-radius:8px}
+.cb-x{font-size:12px;color:#ff9d92;border:1px solid rgba(255,122,107,.4);padding:7px 13px;border-radius:8px;margin-left:auto}
+.cb-hint{font-size:11.5px;color:#7fa39e;width:100%}
+/* hero */
+.hero{border:1px solid rgba(233,245,242,.09);border-radius:18px;overflow:hidden;background:repeating-radial-gradient(circle at 88% -20%,rgba(46,230,195,.045) 0 1px,transparent 1px 46px),linear-gradient(150deg,#11242a,#0d181c)}
+.hero-grid{display:grid;grid-template-columns:1.05fr 1fr;min-height:330px}
+.hero-left{padding:34px;border-right:1px solid rgba(233,245,242,.07);display:flex;flex-direction:column}
+.kick{font-size:10.5px;letter-spacing:.24em;color:#7fa39e;font-weight:700;margin-bottom:14px}
+.bignum{font-family:var(--fd);font-size:34px;font-weight:700;margin-bottom:26px}.bignum span{color:#2ee6c3}
+.big-switch{align-self:flex-start;margin-bottom:24px}
+.bs-track{display:block;width:172px;height:84px;border-radius:99px;background:#1d2c31;position:relative;border:1px solid rgba(233,245,242,.1);transition:.35s;box-shadow:inset 0 3px 10px rgba(0,0,0,.45)}
+.big-switch.on .bs-track{background:linear-gradient(90deg,#0c4a40,#0f7d68);border-color:rgba(46,230,195,.55);box-shadow:inset 0 3px 10px rgba(0,0,0,.35),0 0 34px rgba(46,230,195,.28)}
+.bs-knob{position:absolute;top:7px;left:7px;width:68px;height:68px;border-radius:50%;background:#5b6f72;display:grid;place-items:center;transition:transform .5s cubic-bezier(.34,1.56,.64,1),background .35s;box-shadow:0 4px 12px rgba(0,0,0,.5)}
+.big-switch.on .bs-knob{transform:translateX(88px);background:#eafffa;color:#0c4a40}
+.big-switch.switching .bs-knob{transform:translateX(44px);background:#ffb454;color:#3a2a10}
+.bs-labels{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font-family:var(--fd);font-weight:700;font-size:12px;letter-spacing:.14em;pointer-events:none;color:rgba(233,245,242,.28)}
+.big-switch.on .bs-labels .l-on{color:#eafffa;text-shadow:0 0 12px rgba(46,230,195,.6)}
+.big-switch:not(.on) .bs-labels .l-off{color:#ffb4a0}
+.status-h{font-family:var(--fd);font-size:21px;font-weight:700;margin-bottom:8px}
+.status-h.live{color:#2ee6c3}.status-h.deadc{color:#ff9d92}
+.status-s{font-size:13.5px;color:#8fb0ac;line-height:1.55;margin-bottom:20px}
+.quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+.qchip{font-size:12px;font-weight:600;padding:7px 13px;border-radius:99px;border:1px solid rgba(233,245,242,.15);color:#a9c6c1;transition:.18s}
+.qchip:hover{border-color:#ffb454;color:#ffcf8f;transform:translateY(-1px)}
+.qchip.act{background:rgba(46,230,195,.14);border-color:#2ee6c3;color:#bffff0}
+.hero-right{padding:30px 30px 24px;display:flex;flex-direction:column;gap:18px}
+.route{width:100%;flex:1}
+.route .rp{fill:none;stroke:rgba(233,245,242,.13);stroke-width:2;stroke-dasharray:1 7;stroke-linecap:round}
+.route .rp.hot{stroke:#2ee6c3;animation:dash 1.1s linear infinite;filter:drop-shadow(0 0 5px rgba(46,230,195,.7))}
+.route .rp.hot-amb{stroke:#ffb454;animation:dash 1.1s linear infinite;filter:drop-shadow(0 0 5px rgba(255,180,84,.6))}
+.route .node{fill:#13262b;stroke:rgba(233,245,242,.18);stroke-width:1.5}
+.route .node.lit{stroke:#2ee6c3;fill:#0e3b34;filter:drop-shadow(0 0 8px rgba(46,230,195,.55))}
+.route .node.lit-amb{stroke:#ffb454;fill:#3a2c14;filter:drop-shadow(0 0 8px rgba(255,180,84,.5))}
+.route text{font:600 9.5px var(--fd);fill:#7fa39e;letter-spacing:.14em;text-anchor:middle}
+.route text.hot{fill:#2ee6c3}.route text.hot-amb{fill:#ffb454}
+.voice-row{display:flex;align-items:center;gap:14px;border-top:1px solid rgba(233,245,242,.08);padding-top:16px}
+.wave{display:flex;align-items:center;gap:3px;height:30px}
+.wave span{width:4px;border-radius:3px;background:#2ee6c3;height:6px}
+.wave.live span{animation:wv .9s ease-in-out infinite}
+.wave span:nth-child(1){animation-delay:0s}.wave span:nth-child(2){animation-delay:.12s}.wave span:nth-child(3){animation-delay:.24s}.wave span:nth-child(4){animation-delay:.36s}.wave span:nth-child(5){animation-delay:.48s}.wave span:nth-child(6){animation-delay:.6s}.wave span:nth-child(7){animation-delay:.72s}
+.wave:not(.live) span{opacity:.25}
+.voice-row small{font-size:12px;color:#7fa39e;line-height:1.5}.voice-row small b{color:#cfe8e3;display:block;font-size:12.5px}
+.stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
+.stat{border:1px solid rgba(233,245,242,.09);border-radius:14px;padding:18px 20px;background:#0f1e22;transition:.2s}
+.stat:hover{border-color:rgba(46,230,195,.35);transform:translateY(-2px)}
+.stat .sv{font-family:var(--fd);font-size:34px;font-weight:700;line-height:1}
+.stat .sl{font-size:11px;letter-spacing:.14em;color:#7fa39e;font-weight:700;margin-top:8px;text-transform:uppercase}
+.stat:nth-child(2) .sv{color:#2ee6c3}.stat:nth-child(3) .sv{color:#ffb454}
+.ctrl-grid{display:grid;grid-template-columns:1.7fr 1fr;gap:16px;margin-top:16px}
+.panel{border:1px solid rgba(233,245,242,.09);border-radius:14px;background:#0f1e22;overflow:hidden}
+.panel-h{display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid rgba(233,245,242,.07)}
+.panel-h h3{font-family:var(--fd);font-size:15px;font-weight:600}
+.panel-h button{font-size:12px;color:#2ee6c3;font-weight:600}.panel-h button:hover{text-decoration:underline}
+.panel-b{padding:14px 20px 18px}
+.intent-row{margin-bottom:13px}
+.intent-row .ir-top{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px}
+.intent-row .ir-top b{color:#cfe8e3;font-weight:600}.intent-row .ir-top span{color:#7fa39e}
+.ir-bar{height:7px;border-radius:5px;background:#16282e;overflow:hidden}
+.ir-bar i{display:block;height:100%;border-radius:5px;transition:width .8s}
+.sim-btn{display:inline-flex;align-items:center;gap:9px;background:linear-gradient(135deg,#12695a,#0e9579);color:#eafffa;font-weight:600;font-size:13.5px;padding:11px 18px;border-radius:10px;transition:.2s;box-shadow:0 6px 18px rgba(46,230,195,.18)}
+.sim-btn:hover{transform:translateY(-2px)}
+.sim-btn.ghost{background:transparent;border:1px solid rgba(46,230,195,.4);box-shadow:none;color:#8ff0dc}
+.feed{display:flex;flex-direction:column;gap:12px}
+.call-card{border:1px solid rgba(233,245,242,.09);border-radius:14px;background:#0f1e22;padding:18px 20px;animation:slideIn .4s both;transition:.2s}
+.call-card:hover{border-color:rgba(46,230,195,.3)}
+.call-card.missed{border-color:rgba(255,122,107,.28);background:#1a1517}
+.cc-top{display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+.avatar{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-family:var(--fd);font-weight:700;font-size:15px;flex:none;background:hsl(var(--h) 45% 22%);color:hsl(var(--h) 80% 78%);border:1px solid hsl(var(--h) 50% 34%)}
+.who b{font-family:var(--fd);font-size:15.5px;display:block}.who span{font-size:12.5px;color:#7fa39e}
+.cc-when{margin-left:auto;text-align:right;font-size:12px;color:#7fa39e;line-height:1.5}
+.cc-when b{color:#cfe8e3;font-family:var(--fd);font-size:13px}
+.chip{font-size:10.5px;font-weight:700;letter-spacing:.1em;padding:5px 11px;border-radius:99px;text-transform:uppercase}
+.chip-b{background:rgba(46,230,195,.14);color:#7df5dd;border:1px solid rgba(46,230,195,.4)}
+.chip-o{background:rgba(255,180,84,.13);color:#ffcf8f;border:1px solid rgba(255,180,84,.4)}
+.chip-e{background:rgba(109,180,255,.12);color:#a4d2ff;border:1px solid rgba(109,180,255,.35)}
+.chip-s{background:rgba(215,139,255,.1);color:#e5b8ff;border:1px solid rgba(215,139,255,.3)}
+.chip-x{background:rgba(233,245,242,.06);color:#8fa4a1;border:1px solid rgba(233,245,242,.18)}
+.chip-m{background:rgba(255,122,107,.12);color:#ffb0a6;border:1px solid rgba(255,122,107,.4)}
+.sent{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:#7fa39e}
+.sent i{width:7px;height:7px;border-radius:50%}
+.cc-body{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+.extract{border-radius:11px;padding:14px 16px;font-size:13px}
+.ex-b{background:rgba(46,230,195,.06);border:1px dashed rgba(46,230,195,.35)}
+.ex-o{background:rgba(255,180,84,.06);border:1px dashed rgba(255,180,84,.35)}
+.ex-head{font-family:var(--fd);font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+.ex-b .ex-head{color:#2ee6c3}.ex-o .ex-head{color:#ffb454}
+.ex-row{display:flex;justify-content:space-between;padding:4px 0;color:#bcd6d1}
+.ex-row b{color:#eafffa;font-weight:600}
+.ex-row.total{border-top:1px solid rgba(233,245,242,.12);margin-top:6px;padding-top:8px;font-family:var(--fd);font-size:14px}
+.pushed{display:inline-flex;align-items:center;gap:7px;margin-top:10px;font-size:11.5px;font-weight:600;color:#2ee6c3;background:rgba(46,230,195,.1);padding:5px 11px;border-radius:99px}
+.cc-body details{font-size:13px}
+.cc-body summary{cursor:pointer;color:#7fa39e;font-size:12px;font-weight:600}
+.cc-body details p{margin-top:9px;color:#9fbdb7;line-height:1.6;border-left:2px solid rgba(46,230,195,.3);padding-left:12px;white-space:pre-wrap}
+.cc-foot{margin-top:12px;padding-top:11px;border-top:1px solid rgba(233,245,242,.06);font-size:11.5px;color:#557a75;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.fbtn{font-size:12px;font-weight:600;padding:7px 14px;border-radius:99px;border:1px solid rgba(233,245,242,.14);color:#8fb0ac}
+.fbtn:hover{color:#eafffa}.fbtn.act{background:#2ee6c3;color:#06231e;border-color:#2ee6c3}
+.view-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+.view-head h2{font-family:var(--fd);font-size:23px;font-weight:700;margin-right:auto}
+.empty{border:1px dashed rgba(233,245,242,.15);border-radius:14px;padding:44px;text-align:center;color:#557a75;font-size:14px;line-height:1.7}
+.list-row{display:flex;align-items:center;gap:14px;border:1px solid rgba(233,245,242,.09);border-radius:13px;background:#0f1e22;padding:16px 18px;margin-bottom:10px;transition:.2s;flex-wrap:wrap;animation:slideIn .35s both}
+.list-row:hover{border-color:rgba(46,230,195,.3);transform:translateX(3px)}
+.lr-when{font-family:var(--fd);font-weight:700;font-size:15px;min-width:150px}
+.lr-when small{display:block;font-family:var(--fb);font-weight:400;color:#7fa39e;font-size:12px;margin-top:2px}
+.lr-mid{flex:1;min-width:200px;font-size:13.5px;color:#bcd6d1}.lr-mid b{color:#eafffa;display:block;font-size:14px;margin-bottom:2px}
+.lr-tag{font-size:11px;font-weight:700;padding:5px 11px;border-radius:99px}
+.sched-row{display:grid;grid-template-columns:70px 40px 1fr 1fr;align-items:center;gap:14px;padding:13px 18px;border-bottom:1px solid rgba(233,245,242,.06)}
+.sched-row:last-child{border:none}
+.sched-row .day{font-family:var(--fd);font-weight:600;font-size:14px}
+.sched-row input[type=time]{background:#13262b;border:1px solid rgba(233,245,242,.14);color:#e9f5f2;border-radius:8px;padding:8px 10px;font-family:var(--fd)}
+.sched-row input[type=time]:disabled{opacity:.3}
+.sched-row.offday .day{color:#557a75}
+.mini-sw{position:relative;display:inline-block;width:42px;height:24px}
+.mini-sw input{opacity:0;width:0;height:0}
+.mini-sw .tk{position:absolute;inset:0;border-radius:99px;background:#22333a;transition:.25s;cursor:pointer}
+.mini-sw .tk::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#6d8489;top:3px;left:3px;transition:.25s}
+.mini-sw input:checked+.tk{background:rgba(46,230,195,.25)}
+.mini-sw input:checked+.tk::after{left:21px;background:#2ee6c3;box-shadow:0 0 10px rgba(46,230,195,.6)}
+.push-btn{background:linear-gradient(135deg,#b4741f,#d99a3d);color:#221503;font-weight:700;font-size:13.5px;padding:12px 22px;border-radius:10px;transition:.2s}
+.push-btn:hover{transform:translateY(-2px)}
+.pend-line{display:flex;align-items:center;gap:10px;font-size:13px;color:#bcd6d1;padding:10px 0;border-bottom:1px dashed rgba(233,245,242,.08);flex-wrap:wrap}
+.pend-line:last-child{border:none}
+.pend-dot{width:8px;height:8px;border-radius:50%;flex:none;background:#ffb454;animation:pulse 1.8s infinite}
+.pend-line.done .pend-dot{background:#2ee6c3;animation:none}
+.set-grid{display:grid;gap:18px;max-width:620px}
+.set-field label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.12em;color:#7fa39e;text-transform:uppercase;margin-bottom:8px}
+.set-field textarea,.set-field input[type=text]{width:100%;background:#13262b;border:1px solid rgba(233,245,242,.14);color:#e9f5f2;border-radius:10px;padding:12px 14px;line-height:1.55;resize:vertical}
+.set-field textarea:focus,.set-field input:focus{outline:none;border-color:#2ee6c3}
+@media(max-width:980px){
+ #app{flex-direction:column}
+ .c-side{width:100%;flex-direction:row;align-items:center;padding:10px 14px;overflow-x:auto}
+ .c-brand{padding:0 12px 0 0}.c-side-foot{display:none}
+ .cnav{flex-direction:row}.cnav button{white-space:nowrap;padding:9px 12px}
+ .hero-grid,.ctrl-grid,.stats-strip{grid-template-columns:1fr}
+ .hero-left{border-right:none;border-bottom:1px solid rgba(233,245,242,.07)}
+ .c-top{padding:12px 16px}.c-views{padding:16px 16px 50px}
+}
+</style>
+</head>
+<body>
+<div id="toasts"></div>
+
+<!-- gate -->
+<section id="gate">
+  <div class="gate-card">
+    <div class="gate-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2ee6c3" stroke-width="2" stroke-linecap="round"><path d="M12 2v6m0 4v10M5 8l7 4 7-4"/></svg></div>
+    <h1>SwitchBoard — Control Room</h1>
+    <p id="gateSub">Copper Pot Kitchen · Dana Whitfield<br>Decide when your number answers with Vapi AI — and see everything it captures.</p>
+    <button class="enter-btn" onclick="enterApp()">Enter my control room →</button>
+    <div class="gate-alt">Agency? <a href="switchboard-admin.html">Open the Admin panel →</a></div>
+  </div>
+</section>
+
+<!-- app -->
+<section id="app" class="hidden">
+  <aside class="c-side">
+    <div class="c-brand"><div class="gate-logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2ee6c3" stroke-width="2" stroke-linecap="round"><path d="M12 2v6m0 4v10M5 8l7 4 7-4"/></svg></div><b>SwitchBoard</b></div>
+    <nav class="cnav">
+      <button class="act" data-view="control">⚡ Control</button>
+      <button data-view="calls">📞 Calls</button>
+      <button data-view="bookings">📅 Bookings</button>
+      <button data-view="orders">🛍 Orders</button>
+      <button data-view="schedule">🕐 Schedule</button>
+      <button data-view="settings">⚙ Settings</button>
+    </nav>
+    <div class="c-side-foot" id="sideFoot">Vapi voice agent<br>not connected yet</div>
+  </aside>
+  <main class="c-main">
+    <header class="c-top">
+      <div class="biz"><span id="bizName">Business</span><small id="bizOwner">Owner</small></div>
+      <span class="live-badge" id="topBadge"><i></i><span id="topBadgeTxt">VAPI LIVE</span></span>
+      <span class="conn-chip conn-demo" id="connChip" onclick="showView('control');window.scrollTo(0,0)">DEMO DATA</span>
+      <span class="clock" id="clock">--:--:--</span>
+      <a class="top-btn" href="switchboard-admin.html">Admin panel</a>
+      <button class="top-btn" onclick="signOut()">Sign out</button>
+    </header>
+    <div class="c-views">
+      <div id="connBar"></div>
+
+      <div class="c-view on" id="view-control">
+        <div class="hero"><div class="hero-grid">
+          <div class="hero-left">
+            <div class="kick">AI CALL ROUTING · MASTER SWITCH</div>
+            <div class="bignum" id="bigNumber">—</div>
+            <button class="big-switch on" id="bigSwitch" onclick="flipSwitch()">
+              <span class="bs-track">
+                <span class="bs-labels"><span class="l-on">ON</span><span class="l-off">OFF</span></span>
+                <span class="bs-knob"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 2v9"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg></span>
+              </span>
+            </button>
+            <div class="status-h live" id="statusH">Vapi is answering every call</div>
+            <div class="status-s" id="statusS"></div>
+            <div class="quick">
+              <button class="qchip" onclick="pauseFor(60)">⏸ Pause 1 hour</button>
+              <button class="qchip" onclick="pauseFor(240)">⏸ Pause 4 hours</button>
+              <button class="qchip" id="modeManual" onclick="setMode('manual')">Manual</button>
+              <button class="qchip" id="modeSchedule" onclick="setMode('schedule')">Follow schedule</button>
+            </div>
+          </div>
+          <div class="hero-right">
+            <svg class="route" viewBox="0 0 470 150">
+              <path class="rp" id="p1" d="M62 75 H 200"/>
+              <path class="rp" id="p2" d="M248 75 C 305 75 320 36 398 36"/>
+              <path class="rp" id="p3" d="M248 75 C 305 75 320 114 398 114"/>
+              <circle class="node" cx="44" cy="75" r="18"/><text x="44" y="108">CALLER</text>
+              <circle class="node lit" cx="224" cy="75" r="21"/><text x="224" y="112">SWITCH</text>
+              <circle class="node" id="nVapi" cx="418" cy="36" r="18"/><text id="tVapi" x="418" y="70">VAPI AI</text>
+              <circle class="node" id="nPhone" cx="418" cy="114" r="18"/><text id="tPhone" x="418" y="140">YOUR PHONE</text>
+            </svg>
+            <div class="voice-row">
+              <div class="wave live" id="wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+              <small><b>Vapi voice engine</b><span id="voiceTxt">Standby</span></small>
+            </div>
+          </div>
+        </div></div>
+        <div class="stats-strip">
+          <div class="stat"><div class="sv" id="stCalls">0</div><div class="sl" id="stCallsL">Calls today</div></div>
+          <div class="stat"><div class="sv" id="stBook">0</div><div class="sl">Bookings captured</div></div>
+          <div class="stat"><div class="sv" id="stOrd">0</div><div class="sl">Orders taken</div></div>
+          <div class="stat"><div class="sv" id="stCap">0%</div><div class="sl">AI capture rate</div></div>
+        </div>
+        <div class="ctrl-grid">
+          <div class="panel">
+            <div class="panel-h"><h3>Latest calls</h3><button onclick="showView('calls')">See all →</button></div>
+            <div class="panel-b"><div class="feed" id="recentList"></div></div>
+          </div>
+          <div class="panel">
+            <div class="panel-h"><h3>What Vapi is hearing</h3><button onclick="makeCall()" id="simHeadBtn">Simulate call</button></div>
+            <div class="panel-b" id="intentBars"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="c-view" id="view-calls">
+        <div class="view-head"><h2>Call log</h2>
+          <button class="sim-btn ghost" onclick="makeCall()" id="simBtn">📞 Simulate incoming call</button></div>
+        <div class="filters" id="callFilters">
+          <button class="fbtn act" data-f="all">All</button>
+          <button class="fbtn" data-f="booking">Bookings</button>
+          <button class="fbtn" data-f="order">Orders</button>
+          <button class="fbtn" data-f="enquiry">Enquiries</button>
+          <button class="fbtn" data-f="support">Support</button>
+          <button class="fbtn" data-f="missed">Missed</button>
+        </div>
+        <div class="feed" id="callFeed"></div>
+      </div>
+
+      <div class="c-view" id="view-bookings">
+        <div class="view-head"><h2>Bookings taken by Vapi</h2></div>
+        <div id="bookList"></div>
+      </div>
+
+      <div class="c-view" id="view-orders">
+        <div class="view-head"><h2>Orders taken by Vapi</h2></div>
+        <div id="orderList"></div>
+      </div>
+
+      <div class="c-view" id="view-schedule">
+        <div class="view-head"><h2>AI answering hours</h2>
+          <button class="push-btn" onclick="pushSchedule()">Push schedule to Vapi ↗</button></div>
+        <div class="panel" style="margin-bottom:18px"><div class="panel-b" style="padding:6px 4px" id="schedGrid"></div></div>
+        <div class="panel"><div class="panel-h"><h3>My pending changes</h3></div>
+          <div class="panel-b" id="myPending"></div></div>
+      </div>
+
+      <div class="c-view" id="view-settings">
+        <div class="view-head"><h2>Voice agent settings</h2></div>
+        <div class="panel" style="max-width:660px"><div class="panel-b">
+          <div class="set-grid">
+            <div class="set-field"><label>Greeting Vapi answers with</label><textarea id="setGreeting" rows="3"></textarea></div>
+            <div class="set-field"><label>Fallback number if caller asks for a human</label><input type="text" id="setFallback"></div>
+            <div class="set-field" style="display:flex;align-items:center;gap:12px">
+              <label class="mini-sw"><input type="checkbox" id="setSpam"><span class="tk"></span></label>
+              <span style="font-size:13.5px;color:#bcd6d1">Auto-block spam / robocalls</span></div>
+            <div><button class="sim-btn" onclick="saveSettings()">Save</button></div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+  </main>
+</section>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const uid=()=>Math.random().toString(36).slice(2,9);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const DAYK=['sun','mon','tue','wed','thu','fri','sat'];
+const DAYN={sun:'Sunday',mon:'Monday',tue:'Tuesday',wed:'Wednesday',thu:'Thursday',fri:'Friday',sat:'Saturday'};
+const SENTC={Positive:'#2ee6c3',Neutral:'#8fb0ac',Frustrated:'#ffb454'};
+const NAMES=['Marcus Bell','Priya Nair','Sofia Alvarez','Tom Okafor','Jenny Liu','Ahmed Hassan','Rosa Marin','Caleb Stone'];
+const MENU=[['Pad Thai',14.5],['Green Curry',16],['Spring Rolls ×2',9],['Pho Bowl',15],['Basil Fried Rice',13.5],['Iced Tea',4]];
+const SLOTS=['12:30','18:00','18:30','19:00','19:30','20:00','20:30'];
+const KEY='sb_client_demo_v1', CONN='sb_conn';
+let S, callFilter='all', switching=false;
+let live={calls:[],bookings:[],orders:[],pending:[]};
+const DB={connected:false,sb:null,biz:null,list:[]};
+
+function toast(msg,type){type=type||'ok';const t=document.createElement('div');t.className='toast t-'+type;
+ t.innerHTML='<span class="td"></span><span>'+msg+'</span>';$('#toasts').append(t);
+ requestAnimationFrame(()=>t.classList.add('in'));
+ setTimeout(()=>{t.classList.remove('in');setTimeout(()=>t.remove(),320);},3800);}
+function save(){localStorage.setItem(KEY,JSON.stringify(S));}
+function dayLabel(off){const d=new Date();d.setDate(d.getDate()+off);return d.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'});}
+function genPhone(){return '+1 (415) 555-01'+String(Math.floor(Math.random()*90)+10);}
+function fmtTime(d){return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
+function fmtDur(s){return Math.floor(s/60)+'m '+String(Math.floor(s%60)).padStart(2,'0')+'s';}
+function whenTxt(ts){const d=new Date(ts),n=new Date();const t=fmtTime(d);
+ if(d.toDateString()===n.toDateString())return 'Today · '+t;
+ const y=new Date(n);y.setDate(n.getDate()-1);if(d.toDateString()===y.toDateString())return 'Yesterday · '+t;
+ return d.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'})+' · '+t;}
+function relTime(ts){const m=Math.round((Date.now()-ts)/6e4);if(m<1)return 'just now';
+ if(m<60)return m+'m ago';const h=Math.round(m/60);if(h<24)return h+'h ago';return Math.round(h/24)+'d ago';}
+function hueOf(str){let h=0;for(const c of str)h=(h*31+c.charCodeAt(0))%360;return h;}
+
+function seed(){
+ const now=Date.now();
+ const mk=(intent,name,ago,dur,extra)=>Object.assign({id:uid(),intent,name,phone:genPhone(),at:now-ago,dur,handled:true,sent:pick(['Positive','Positive','Neutral'])},extra||{});
+ return {mainOn:true,mode:'manual',lastFlip:now-52*6e4,resumeAt:0,nextOrder:1043,
+  bizName:'Copper Pot Kitchen',bizOwner:'Dana Whitfield',bizPhone:'+1 (415) 555-0132',
+  greeting:"Thanks for calling Copper Pot Kitchen — I'm the AI assistant. I can take reservations and pickup orders.",
+  fallback:'+1 (415) 555-0100',spamFilter:true,
+  schedule:{mon:{on:true,from:'09:00',to:'22:00'},tue:{on:true,from:'09:00',to:'22:00'},wed:{on:true,from:'09:00',to:'22:00'},thu:{on:true,from:'09:00',to:'23:00'},fri:{on:true,from:'09:00',to:'23:30'},sat:{on:true,from:'10:00',to:'23:30'},sun:{on:false,from:'10:00',to:'20:00'}},
+  calls:[
+   mk('booking','Priya Nair',38*6e4,196,{book:{svc:'Table for 4',when:dayLabel(2)+' · 19:00',note:'Window seat'}}),
+   mk('order','Marcus Bell',2*36e5,243,{order:{id:'#1042',lines:[['Pad Thai',14.5],['Green Curry',16],['Spring Rolls ×2',9]],total:39.5,pickup:'Today · 18:20'}}),
+   mk('enquiry','Sofia Alvarez',5*36e5,88,{topic:'Large group + private room'}),
+   {id:uid(),intent:'missed',name:'Harvey Lang',phone:genPhone(),at:now-29*36e5,dur:0,handled:false,sent:'Neutral'}],
+  bookings:[{id:uid(),name:'Priya Nair',svc:'Table for 4',when:dayLabel(2)+' · 19:00',note:'Window seat',status:'Confirmed'}],
+  orders:[{id:'#1042',name:'Marcus Bell',lines:[['Pad Thai',14.5],['Green Curry',16],['Spring Rolls ×2',9]],total:39.5,pickup:'Today · 18:20',status:'Preparing'}]};
+}
+function loadLocal(){try{S=JSON.parse(localStorage.getItem(KEY));}catch(e){}if(!S||!S.calls)S=seed();}
+
+/* mapping */
+function mapCall(r){const sd=r.structured||{};
+ const c={id:r.id,vapi:!!r.vapi_call_id,intent:sd.intent||r.intent||'enquiry',
+  name:r.caller_name||'Unknown caller',phone:r.caller_phone||'—',
+  at:r.started_at?Date.parse(r.started_at):Date.parse(r.created_at||Date.now()),
+  dur:r.duration_sec||0,handled:r.handled!==false,sent:sd.sentiment||r.sentiment||'Neutral',
+  summary:r.summary,transcript:r.transcript};
+ if(sd.booking)c.book={svc:sd.booking.service||'Booking',when:[sd.booking.date,sd.booking.time].filter(Boolean).join(' · ')||'TBD',note:sd.booking.note||'None'};
+ if(sd.order)c.order={id:r.order_ref||('#'+(r.vapi_call_id||r.id).slice(0,5)),
+  lines:(sd.order.items||[]).map(i=>[i.name,i.price||0]),total:+sd.order.total||0,
+  pickup:sd.order.pickup?'Today · '+sd.order.pickup:'ASAP'};
+ if(sd.topic)c.topic=sd.topic;
+ return c;}
+const CALLS=()=>DB.connected?live.calls:S.calls;
+const BOOKS=()=>DB.connected?live.bookings:S.bookings;
+const ORDS=()=>DB.connected?live.orders:S.orders;
+const PENDS=()=>DB.connected?live.pending:S.pending;
+
+/* connect */
+function renderConnBar(){
+ const el=$('#connBar');
+ if(!DB.connected){
+  el.innerHTML='<div class="cb"><b style="color:#ffcf8f;font-size:13px">⚠ Sample data</b>'+
+   '<input id="supaUrl" placeholder="Supabase project URL (https://xxxx.supabase.co)">'+
+   '<input id="supaKey" placeholder="anon / public key">'+
+   '<button class="cb-btn" onclick="dbConnect()">Connect</button>'+
+   '<span class="cb-hint">Paste your Supabase credentials to go live — calls then arrive from the Vapi webhook automatically.</span></div>';
+ }else{
+  el.innerHTML='<div class="cb live"><span class="conn-chip conn-live">● LIVE — Supabase</span>'+
+   '<span style="font-size:12.5px;color:#8fb0ac">Acting as:</span>'+
+   '<select onchange="switchBiz(this.value)">'+DB.list.map(b=>'<option value="'+b.id+'"'+(b.id===DB.biz.id?' selected':'')+'>'+b.name+'</option>').join('')+'</select>'+
+   '<span class="cb-hint" style="width:auto;flex:1">New calls sync every 15 s from the vapi-webhook.</span>'+
+   '<button class="cb-x" onclick="dbDisconnect()">Disconnect</button></div>';
+ }
+ const chip=$('#connChip');chip.className='conn-chip '+(DB.connected?'conn-live':'conn-demo');
+ chip.textContent=DB.connected?'● LIVE':'DEMO DATA';
+ $('#sideFoot').innerHTML=DB.connected
+  ?'Vapi voice agent<br>connected to <b style="color:#8fb0ac">'+(DB.biz.phone||'—')+'</b>'
+  :'Vapi voice agent<br>not connected yet';
+}
+async function dbConnect(preferBizId){
+ const url=$('#supaUrl')?$('#supaUrl').value.trim():'',key=$('#supaKey')?$('#supaKey').value.trim():'';
+ if(!url||!key){toast('Paste both the Supabase URL and anon key','warn');return;}
+ if(!window.supabase){toast('Supabase JS failed to load — check connection','bad');return;}
+ try{
+  const sb=window.supabase.createClient(url,key);
+  const {data,error}=await sb.from('sb_businesses').select('*').order('name');
+  if(error)throw error;
+  if(!data||!data.length)throw new Error('Connected, but sb_businesses is empty — add your business row first.');
+  DB.sb=sb;DB.connected=true;DB.list=data;DB.biz=data.find(b=>b.id===preferBizId)||data[0];
+  localStorage.setItem(CONN,JSON.stringify({url,key,bizId:DB.biz.id}));
+  syncBiz();renderConnBar();toast('✓ Connected — live mode','ok');
+  await refreshLive();
+ }catch(e){toast('Connection failed: '+e.message,'bad');}
+}
+function dbDisconnect(){localStorage.removeItem(CONN);DB.connected=false;DB.sb=null;DB.biz=null;
+ renderConnBar();renderAll();toast('Disconnected — sample data','warn');}
+function syncBiz(){if(!DB.biz)return;
+ S.bizName=DB.biz.name;S.bizOwner=DB.biz.owner||'Owner';S.bizPhone=DB.biz.phone||'+1 (—) ———';
+ S.mainOn=!!DB.biz.vapi_enabled;if(DB.biz.fallback_phone)S.fallback=DB.biz.fallback_phone;save();}
+async function switchBiz(id){DB.biz=DB.list.find(b=>b.id===id)||DB.biz;
+ const c=JSON.parse(localStorage.getItem(CONN)||'{}');c.bizId=id;localStorage.setItem(CONN,JSON.stringify(c));
+ syncBiz();await refreshLive();toast('Now acting as '+DB.biz.name,'ok');}
+async function refreshLive(){
+ if(!DB.connected)return;
+ const sb=DB.sb,cid=DB.biz.id;
+ const {data:b}=await sb.from('sb_businesses').select('*').eq('id',cid).maybeSingle();
+ if(b){DB.biz=b;syncBiz();}
+ const [c,bk,od,pe]=await Promise.all([
+  sb.from('sb_calls').select('*').eq('business_id',cid).order('started_at',{ascending:false}).limit(100),
+  sb.from('sb_bookings').select('*').eq('business_id',cid).order('created_at',{ascending:false}).limit(60),
+  sb.from('sb_orders').select('*').eq('business_id',cid).order('created_at',{ascending:false}).limit(60),
+  sb.from('sb_pending_changes').select('*').eq('business_id',cid).order('created_at',{ascending:false})]);
+ live.calls=(c.data||[]).map(mapCall);
+ live.bookings=(bk.data||[]).map(r=>({id:r.id,name:r.caller_name||'—',svc:r.service||'Booking',when:[r.date,r.time].filter(Boolean).join(' · ')||'TBD',note:r.note||'',status:r.status||'Confirmed'}));
+ live.orders=(od.data||[]).map(r=>({id:r.order_ref||('#'+r.id.slice(0,5)),name:r.caller_name||'—',lines:(r.items||[]).map(i=>[i.name,i.price||0]),total:+r.total||0,pickup:r.pickup?'Pickup · '+r.pickup:'ASAP',status:r.status||'New'}));
+ live.pending=(pe.data||[]).map(p=>({id:p.id,client:DB.biz.name,desc:p.description,pushed:p.pushed}));
+ renderAll();
+}
+
+/* nav */
+function enterApp(){$('#gate').classList.add('hidden');$('#app').classList.remove('hidden');renderAll();renderConnBar();}
+function signOut(){$('#app').classList.add('hidden');$('#gate').classList.remove('hidden');}
+function showView(v){$$('.c-view').forEach(x=>x.classList.toggle('on',x.id==='view-'+v));
+ $$('.cnav button').forEach(b=>b.classList.toggle('act',b.dataset.view===v));
+ ({control:renderControl,calls:renderCalls,bookings:renderBookings,orders:renderOrders,schedule:renderSchedule,settings:renderSettings})[v]();}
+$$('.cnav button').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
+
+/* switch */
+async function flipSwitch(){
+ if(switching)return;switching=true;
+ const el=$('#bigSwitch');el.classList.add('switching');
+ const target=!S.mainOn;
+ await new Promise(r=>setTimeout(r,880));
+ if(DB.connected){
+  const {error}=await DB.sb.from('sb_businesses').update({vapi_enabled:target}).eq('id',DB.biz.id);
+  if(error){toast('Update failed: '+error.message,'bad');switching=false;el.classList.remove('switching');return;}
+  DB.biz.vapi_enabled=target;}
+ S.mainOn=target;S.lastFlip=Date.now();S.resumeAt=0;switching=false;
+ el.classList.remove('switching');save();renderControl();
+ toast(target?'✓ Number routed to Vapi — AI is answering':'Calls now ring your phone directly',target?'ok':'warn');
+ if(target&&!DB.connected)setTimeout(makeCall,4200);}
+function pauseFor(min){S.mainOn=false;S.resumeAt=Date.now()+min*6e4;save();renderControl();
+ if(DB.connected)DB.sb.from('sb_businesses').update({vapi_enabled:false}).eq('id',DB.biz.id);
+ toast('AI paused — back on in '+min+' min','warn');}
+function setMode(m){S.mode=m;save();renderControl();
+ if(m==='schedule'){applyScheduleNow(true);toast('Following answering-hours schedule','ok');}
+ else toast('Manual mode','ok');}
+function applyScheduleNow(announce){const d=new Date(),cfg=S.schedule[DAYK[d.getDay()]];
+ const nowM=d.getHours()*60+d.getMinutes();
+ const f=+cfg.from.split(':')[0]*60+ +cfg.from.split(':')[1],t=+cfg.to.split(':')[0]*60+ +cfg.to.split(':')[1];
+ const should=cfg.on&&nowM>=f&&nowM<t;
+ if(S.mainOn!==should){S.mainOn=should;save();renderControl();
+  if(DB.connected)DB.sb.from('sb_businesses').update({vapi_enabled:should}).eq('id',DB.biz.id);
+  if(announce)toast(should?'Inside hours — AI ON':'Outside hours — AI OFF','warn');}}
+
+/* render */
+function tween(el,val,suf){const from=+el.dataset.v||0;el.dataset.v=val;suf=suf||'';
+ if(from===val){el.textContent=val+suf;return;}
+ const t0=performance.now();(function step(t){const p=Math.min(1,(t-t0)/500);
+  el.textContent=Math.round(from+(val-from)*p)+suf;if(p<1)requestAnimationFrame(step);})(t0);}
+function renderControl(){
+ const on=S.mainOn;
+ $('#bizName').textContent=S.bizName;$('#bizOwner').textContent=S.bizOwner;
+ $('#bigNumber').textContent=S.bizPhone||'+1 (—) ———';
+ $('#bigSwitch').classList.toggle('on',on);
+ const h=$('#statusH');h.textContent=on?'Vapi is answering every call':'Calls ring your phone directly';
+ h.className='status-h '+(on?'live':'deadc');
+ $('#statusS').textContent=(on?'Callers hear your AI host. Bookings and orders appear below the moment they\u2019re captured. ':'AI is off — callers reach you or voicemail. ')+'Switched '+relTime(S.lastFlip)+'.';
+ $('#topBadge').classList.toggle('off',!on);
+ $('#topBadgeTxt').textContent=on?'VAPI LIVE':'AI OFF';
+ $('#wave').classList.toggle('live',on);
+ $('#voiceTxt').textContent=DB.connected?(on?'Live — calls sync from Supabase every 15 s':'Standby — engine idle'):(on?'Listening · speaking · extracting details in real time':'Standby — engine idle');
+ $('#p1').setAttribute('class','rp '+(on?'hot':'hot-amb'));
+ $('#p2').setAttribute('class','rp'+(on?' hot':''));
+ $('#p3').setAttribute('class','rp'+(!on?' hot-amb':''));
+ $('#nVapi').setAttribute('class','node'+(on?' lit':''));$('#tVapi').setAttribute('class',on?'hot':'');
+ $('#nPhone').setAttribute('class','node'+(!on?' lit-amb':''));$('#tPhone').setAttribute('class',!on?'hot-amb':'');
+ $('#modeManual').classList.toggle('act',S.mode==='manual');
+ $('#modeSchedule').classList.toggle('act',S.mode==='schedule');
+ const calls=CALLS(),today=new Date().toDateString();
+ const todays=calls.filter(c=>new Date(c.at).toDateString()===today);
+ tween($('#stCalls'),DB.connected?calls.length:todays.length);
+ $('#stCallsL').textContent=DB.connected?'Calls (all time)':'Calls today';
+ tween($('#stBook'),BOOKS().length);tween($('#stOrd'),ORDS().length);
+ const hd=calls.filter(c=>c.handled).length;
+ tween($('#stCap'),calls.length?Math.round(hd/calls.length*100):100,'%');
+ $('#recentList').innerHTML=calls.slice(0,3).map(callCard).join('')||'<div class="empty">No calls yet.</div>';
+ const counts={};calls.forEach(c=>{const k=c.handled?c.intent:'missed';counts[k]=(counts[k]||0)+1;});
+ const colors={booking:'#2ee6c3',order:'#ffb454',enquiry:'#6db4ff',support:'#d78bff',spam:'#8fa4a1',missed:'#ff7a6b'};
+ const labels={booking:'Appointments',order:'Orders',enquiry:'Enquiries',support:'Support',spam:'Spam blocked',missed:'Missed'};
+ const tot=Math.max(1,calls.length);
+ $('#intentBars').innerHTML=Object.keys(labels).map(k=>{const n=counts[k]||0;
+  return '<div class="intent-row"><div class="ir-top"><b>'+labels[k]+'</b><span>'+n+'</span></div>'+
+  '<div class="ir-bar"><i style="width:'+(n/tot*100)+'%;background:'+colors[k]+'"></i></div></div>';}).join('');
+ const simTxt=DB.connected?'Send test call':'Simulate call';
+ $('#simHeadBtn').textContent=simTxt;$('#simBtn').textContent=(DB.connected?'🧪 ':'📞 ')+simTxt;
+}
+function callCard(c){
+ const chips={booking:['chip-b','Booking'],order:['chip-o','Order'],enquiry:['chip-e','Enquiry'],support:['chip-s','Support'],spam:['chip-x','Spam'],missed:['chip-m','Missed']};
+ const ch=chips[c.intent]||chips.enquiry;
+ let ex='';
+ if(c.book){ex='<div class="extract ex-b"><div class="ex-head">📅 Appointment captured by Vapi</div>'+
+  '<div class="ex-row"><span>Party / service</span><b>'+c.book.svc+'</b></div>'+
+  '<div class="ex-row"><span>Date & time</span><b>'+c.book.when+'</b></div>'+
+  '<div class="ex-row"><span>Note</span><b>'+c.book.note+'</b></div>'+
+  '<span class="pushed">✓ Synced to calendar via Vapi</span></div>';}
+ if(c.order){ex='<div class="extract ex-o"><div class="ex-head">🛍 Order captured by Vapi · '+c.order.id+'</div>'+
+  c.order.lines.map(l=>'<div class="ex-row"><span>'+l[0]+'</span><b>$'+(+l[1]).toFixed(2)+'</b></div>').join('')+
+  '<div class="ex-row total"><span>Total</span><b>$'+(+c.order.total).toFixed(2)+'</b></div>'+
+  '<div class="ex-row"><span>Pickup</span><b>'+c.order.pickup+'</b></div>'+
+  '<span class="pushed" style="color:#ffb454;background:rgba(255,180,84,.1)">✓ Sent to kitchen · order '+c.order.id+'</span></div>';}
+ if(c.topic){ex='<div class="extract" style="background:rgba(109,180,255,.06);border:1px dashed rgba(109,180,255,.3);color:#bcd6d1"><b style="color:#a4d2ff">Topic:</b> '+c.topic+'</div>';}
+ const det=(c.summary||c.transcript)?'<details><summary>▸ Vapi summary'+(c.transcript?' & transcript':'')+'</summary><p>'+
+  (c.summary?'<b>Summary:</b> '+c.summary+'\n':'')+(c.transcript?'<b>Transcript:</b>\n'+c.transcript:'')+'</p></details>':'';
+ return '<article class="call-card'+(c.handled?'':' missed')+'">'+
+  '<div class="cc-top"><span class="avatar" style="--h:'+hueOf(c.name)+'">'+c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()+'</span>'+
+  '<div class="who"><b>'+c.name+'</b><span>'+c.phone+'</span></div>'+
+  '<span class="chip '+ch[0]+'">'+ch[1]+'</span>'+
+  '<span class="sent"><i style="background:'+(SENTC[c.sent]||'#8fb0ac')+'"></i>'+c.sent+'</span>'+
+  '<div class="cc-when"><b>'+whenTxt(c.at)+'</b><br>'+(c.dur?fmtDur(c.dur):'no answer')+'</div></div>'+
+  '<div class="cc-body">'+ex+det+'</div>'+
+  '<div class="cc-foot"><span>'+(c.handled?'⚡ Handled by Vapi AI':'✕ Missed — AI was switched off')+'</span>'+
+  '<span>'+(c.vapi?'from Vapi webhook':'local')+'</span></div></article>';}
+function renderCalls(){
+ let list=CALLS();
+ if(callFilter!=='all')list=callFilter==='missed'?list.filter(c=>!c.handled):list.filter(c=>c.intent===callFilter&&c.handled);
+ $('#callFeed').innerHTML=list.map(callCard).join('')||'<div class="empty">Nothing here yet.'+(DB.connected?'<br>Calls appear when Vapi posts its end-of-call report to your webhook.':'')+'</div>';}
+$$('#callFilters .fbtn').forEach(b=>b.addEventListener('click',()=>{callFilter=b.dataset.f;
+ $$('#callFilters .fbtn').forEach(x=>x.classList.toggle('act',x===b));renderCalls();}));
+function renderBookings(){
+ $('#bookList').innerHTML=BOOKS().map(b=>'<div class="list-row">'+
+  '<div class="lr-when">'+(b.when.split(' · ')[0]||'TBD')+'<small>'+(b.when.split(' · ')[1]||'')+' · '+b.name+'</small></div>'+
+  '<div class="lr-mid"><b>'+b.svc+'</b>'+(b.note&&b.note!=='None'?'Note: '+b.note:'No special requests')+'</div>'+
+  '<span class="lr-tag chip-b">'+b.status+'</span></div>').join('')||'<div class="empty">No bookings yet.</div>';}
+function renderOrders(){
+ $('#orderList').innerHTML=ORDS().map(o=>'<div class="list-row">'+
+  '<div class="lr-when">'+o.id+'<small>'+o.pickup+' · '+o.name+'</small></div>'+
+  '<div class="lr-mid"><b>'+(o.lines.length?o.lines.map(l=>l[0]).join(', '):'—')+'</b>Total $'+(+o.total).toFixed(2)+'</div>'+
+  '<span class="lr-tag '+(o.status==='Collected'?'chip-b':'chip-o')+'">'+o.status+'</span></div>').join('')||'<div class="empty">No orders yet.</div>';}
+function renderSchedule(){
+ $('#schedGrid').innerHTML=DAYK.map(k=>{const c=S.schedule[k];
+  return '<div class="sched-row'+(c.on?'':' offday')+'" data-day="'+k+'">'+
+  '<span class="day">'+DAYN[k]+'</span>'+
+  '<label class="mini-sw"><input type="checkbox" '+(c.on?'checked':'')+' onchange="schedDayToggle(this,\''+k+'\')"><span class="tk"></span></label>'+
+  '<input type="time" value="'+c.from+'" '+(c.on?'':'disabled')+' data-r="from">'+
+  '<input type="time" value="'+c.to+'" '+(c.on?'':'disabled')+' data-r="to"></div>';}).join('');
+ const mine=PENDS();
+ $('#myPending').innerHTML=mine.length?mine.map(p=>'<div class="pend-line'+(p.pushed?' done':'')+'">'+
+  '<span class="pend-dot"></span><span>'+p.desc+'</span>'+
+  '<span style="margin-left:auto;font-size:11.5px;color:'+(p.pushed?'#2ee6c3':'#ffb454')+'">'+(p.pushed?'✓ pushed to Vapi':'⏳ awaiting admin push')+'</span></div>').join('')
+  :'<span style="color:#557a75;font-size:13px">No pending changes.</span>';}
+function schedDayToggle(cb,k){S.schedule[k].on=cb.checked;save();renderSchedule();}
+async function pushSchedule(){
+ const parts=[];
+ $$('#schedGrid .sched-row').forEach(row=>{const k=row.dataset.day;
+  const from=row.querySelector('[data-r=from]').value,to=row.querySelector('[data-r=to]').value,on=row.querySelector('input').checked;
+  const cur=S.schedule[k];
+  if(cur.from!==from||cur.to!==to||cur.on!==on){S.schedule[k]={on,from,to};
+   parts.push(DAYN[k].slice(0,3)+': '+(on?from+'–'+to:'closed'));}});
+ if(!parts.length){toast('No changes to push','warn');return;}
+ const desc=parts.join(' · ');
+ if(DB.connected){
+  const {error}=await DB.sb.from('sb_pending_changes').insert({business_id:DB.biz.id,biz_name:DB.biz.name,description:desc});
+  if(error){toast('Insert failed: '+error.message,'bad');return;}
+  toast('Schedule sent — admin will mark it pushed to Vapi','ok');refreshLive();return;}
+ if(!S.pending)S.pending=[];
+ S.pending.unshift({id:uid(),client:S.bizName,desc,pushed:false});save();renderSchedule();
+ toast('Schedule sent — admin will mark it pushed to Vapi ↗','ok');}
+function renderSettings(){$('#setGreeting').value=S.greeting;$('#setFallback').value=S.fallback;$('#setSpam').checked=S.spamFilter;}
+function saveSettings(){S.greeting=$('#setGreeting').value;S.fallback=$('#setFallback').value;S.spamFilter=$('#setSpam').checked;save();
+ if(DB.connected)DB.sb.from('sb_businesses').update({fallback_phone:S.fallback}).eq('id',DB.biz.id);
+ toast('Settings saved'+(DB.connected?' & pushed to Supabase':''),'ok');}
+function renderAll(){renderControl();renderCalls();renderBookings();renderOrders();renderSchedule();renderSettings();}
+
+async function makeCall(){
+ if(DB.connected){
+  const {error}=await DB.sb.from('sb_calls').insert({business_id:DB.biz.id,caller_name:'Test Caller',
+   caller_phone:'+10000000000',started_at:new Date().toISOString(),duration_sec:42,intent:'enquiry',
+   sentiment:'Neutral',summary:'Test entry from SwitchBoard to verify the write path.',
+   structured:{intent:'enquiry',sentiment:'Neutral',topic:'Pipeline test'},handled:true});
+  if(error){toast('Insert failed: '+error.message,'bad');return;}
+  toast('Test call written to Supabase ✓','ok');setTimeout(refreshLive,700);return;}
+ const now=Date.now(),name=pick(NAMES),phone=genPhone();
+ if(!S.mainOn){S.calls.unshift({id:uid(),intent:'missed',name,phone,at:now,dur:0,handled:false,sent:'Neutral'});
+  save();renderControl();renderCalls();toast('✕ Missed call from '+name+' — AI is off','bad');return;}
+ const r=Math.random();
+ const intent=r<.34?'booking':r<.6?'order':r<.8?'enquiry':r<.92?'support':'spam';
+ const c={id:uid(),intent,name,phone,at:now,dur:intent==='spam'?4:40+Math.floor(Math.random()*190),handled:true,sent:pick(['Positive','Positive','Neutral'])};
+ if(intent==='booking'){c.book={svc:'Table for '+(2+Math.floor(Math.random()*5)),when:dayLabel(Math.floor(Math.random()*6))+' · '+pick(SLOTS),note:'—'};
+  S.bookings.unshift({id:uid(),name,svc:c.book.svc,when:c.book.when,note:'',status:'Confirmed'});}
+ else if(intent==='order'){const n=2+Math.floor(Math.random()*2),lines=[];
+  while(lines.length<n){const it=pick(MENU);if(!lines.find(l=>l[0]===it[0]))lines.push(it);}
+  c.order={id:'#'+S.nextOrder++,lines,total:lines.reduce((a,l)=>a+l[1],0),pickup:'Today · '+fmtTime(new Date(now+25*6e4))};
+  S.orders.unshift({id:c.order.id,name,lines:c.order.lines,total:c.order.total,pickup:c.order.pickup,status:'Preparing'});}
+ else if(intent==='enquiry')c.topic=pick(['Hours & parking','Menu questions','Large group','Gift cards']);
+ else if(intent==='support')c.topic=pick(['Moved a booking','Changed an order','Feedback']);
+ S.calls.unshift(c);if(S.calls.length>60)S.calls.length=60;
+ save();renderControl();renderCalls();renderBookings();renderOrders();
+ toast({booking:'📅 Booking captured from '+name,order:'🛍 Order taken from '+name,enquiry:'ℹ Enquiry handled',support:'🔧 Support handled',spam:'🚫 Spam blocked'}[intent],'ok');}
+
+/* tickers */
+setInterval(()=>{const n=new Date();$('#clock').textContent=fmtTime(n)+':'+String(n.getSeconds()).padStart(2,'0');},1000);
+setInterval(()=>{
+ if(DB.connected){refreshLive();return;}
+ if($('#app').classList.contains('hidden')||!S.mainOn)return;
+ if(Math.random()<.5)makeCall();},15000);
+setInterval(()=>{
+ if(S.resumeAt&&Date.now()>S.resumeAt){S.resumeAt=0;S.mainOn=true;save();
+  if(DB.connected)DB.sb.from('sb_businesses').update({vapi_enabled:true}).eq('id',DB.biz?.id);
+  renderControl();toast('⏸ Pause ended — Vapi answering again','ok');}
+ if(S.mode==='schedule'&&!DB.connected&&!$('#app').classList.contains('hidden'))applyScheduleNow(false);},5000);
+
+/* init */
+loadLocal();renderConnBar();
+(function(){const c=JSON.parse(localStorage.getItem(CONN)||'null');if(!c)return;
+ // auto-reconnect using credentials saved by this file or the admin file
+ setTimeout(()=>{ if(!DB.connected){const bar=$('#connBar');
+  if(bar.querySelector('#supaUrl')){$('#supaUrl').value=c.url;$('#supaKey').value=c.key;dbConnect(c.bizId);}}},400);})();
+</script>
+</body>
+</html>

@@ -674,8 +674,10 @@ setInterval(()=>{
 
 /* init */
 loadLocal();renderConnBar();
-(function(){const c=JSON.parse(localStorage.getItem(CONN)||'null');if(!c)return;
- // auto-reconnect using credentials saved by this file or the admin file
+(function(){
+ // Live Supabase project (anon key is public/client-side by design)
+ const DEFAULT_SUPA={url:'https://suiilufpgjkbiawetttd.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1aWlsdWZwZ2prYmlhd2V0dHRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyMDUwNzIsImV4cCI6MjA5ODc4MTA3Mn0.tNISiQiyVFZxbP72TMxIy1IWiNkvHrjLqCEKjwh8MKQ'};
+ let c=JSON.parse(localStorage.getItem(CONN)||'null')||DEFAULT_SUPA;
  setTimeout(()=>{ if(!DB.connected){const bar=$('#connBar');
   if(bar.querySelector('#supaUrl')){$('#supaUrl').value=c.url;$('#supaKey').value=c.key;dbConnect(c.bizId);}}},400);})();
 </script>

@@ -350,6 +350,7 @@ a{color:inherit}
 
 <script>
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+function setHTML(el,html){if(!el||el.__last===html)return;el.__last=html;el.innerHTML=html;}
 const uid=()=>Math.random().toString(36).slice(2,9);
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const DAYK=['sun','mon','tue','wed','thu','fri','sat'];
@@ -544,14 +545,14 @@ function renderControl(){
  tween($('#stBook'),BOOKS().length);tween($('#stOrd'),ORDS().length);
  const hd=calls.filter(c=>c.handled).length;
  tween($('#stCap'),calls.length?Math.round(hd/calls.length*100):100,'%');
- $('#recentList').innerHTML=calls.slice(0,3).map(callCard).join('')||'<div class="empty">No calls yet.</div>';
+ setHTML($('#recentList'),calls.slice(0,3).map(callCard).join('')||'<div class="empty">No calls yet.</div>');
  const counts={};calls.forEach(c=>{const k=c.handled?c.intent:'missed';counts[k]=(counts[k]||0)+1;});
  const colors={booking:'#2ee6c3',order:'#ffb454',enquiry:'#6db4ff',support:'#d78bff',spam:'#8fa4a1',missed:'#ff7a6b'};
  const labels={booking:'Appointments',order:'Orders',enquiry:'Enquiries',support:'Support',spam:'Spam blocked',missed:'Missed'};
  const tot=Math.max(1,calls.length);
- $('#intentBars').innerHTML=Object.keys(labels).map(k=>{const n=counts[k]||0;
+ setHTML($('#intentBars'),Object.keys(labels).map(k=>{const n=counts[k]||0;
   return '<div class="intent-row"><div class="ir-top"><b>'+labels[k]+'</b><span>'+n+'</span></div>'+
-  '<div class="ir-bar"><i style="width:'+(n/tot*100)+'%;background:'+colors[k]+'"></i></div></div>';}).join('');
+  '<div class="ir-bar"><i style="width:'+(n/tot*100)+'%;background:'+colors[k]+'"></i></div></div>';}).join(''));
  const simTxt=DB.connected?'Send test call':'Simulate call';
  $('#simHeadBtn').textContent=simTxt;$('#simBtn').textContent=(DB.connected?'🧪 ':'📞 ')+simTxt;
 }
@@ -584,31 +585,31 @@ function callCard(c){
 function renderCalls(){
  let list=CALLS();
  if(callFilter!=='all')list=callFilter==='missed'?list.filter(c=>!c.handled):list.filter(c=>c.intent===callFilter&&c.handled);
- $('#callFeed').innerHTML=list.map(callCard).join('')||'<div class="empty">Nothing here yet.'+(DB.connected?'<br>Calls appear when AI posts its end-of-call report to your webhook.':'')+'</div>';}
+ setHTML($('#callFeed'),list.map(callCard).join('')||'<div class="empty">Nothing here yet.'+(DB.connected?'<br>Calls appear when AI posts its end-of-call report to your webhook.':'')+'</div>');}
 $$('#callFilters .fbtn').forEach(b=>b.addEventListener('click',()=>{callFilter=b.dataset.f;
  $$('#callFilters .fbtn').forEach(x=>x.classList.toggle('act',x===b));renderCalls();}));
 function renderBookings(){
- $('#bookList').innerHTML=BOOKS().map(b=>'<div class="list-row">'+
+ setHTML($('#bookList'),BOOKS().map(b=>'<div class="list-row">'+
   '<div class="lr-when">'+(b.when.split(' · ')[0]||'TBD')+'<small>'+(b.when.split(' · ')[1]||'')+' · '+b.name+'</small></div>'+
   '<div class="lr-mid"><b>'+b.svc+'</b>'+(b.note&&b.note!=='None'?'Note: '+b.note:'No special requests')+'</div>'+
-  '<span class="lr-tag chip-b">'+b.status+'</span></div>').join('')||'<div class="empty">No bookings yet.</div>';}
+  '<span class="lr-tag chip-b">'+b.status+'</span></div>').join('')||'<div class="empty">No bookings yet.</div>');}
 function renderOrders(){
- $('#orderList').innerHTML=ORDS().map(o=>'<div class="list-row">'+
+ setHTML($('#orderList'),ORDS().map(o=>'<div class="list-row">'+
   '<div class="lr-when">'+o.id+'<small>'+o.pickup+' · '+o.name+'</small></div>'+
   '<div class="lr-mid"><b>'+(o.lines.length?o.lines.map(l=>l[0]).join(', '):'—')+'</b>Total $'+(+o.total).toFixed(2)+'</div>'+
-  '<span class="lr-tag '+(o.status==='Collected'?'chip-b':'chip-o')+'">'+o.status+'</span></div>').join('')||'<div class="empty">No orders yet.</div>';}
+  '<span class="lr-tag '+(o.status==='Collected'?'chip-b':'chip-o')+'">'+o.status+'</span></div>').join('')||'<div class="empty">No orders yet.</div>');}
 function renderSchedule(){
- $('#schedGrid').innerHTML=DAYK.map(k=>{const c=S.schedule[k];
+ setHTML($('#schedGrid'),DAYK.map(k=>{const c=S.schedule[k];
   return '<div class="sched-row'+(c.on?'':' offday')+'" data-day="'+k+'">'+
   '<span class="day">'+DAYN[k]+'</span>'+
   '<label class="mini-sw"><input type="checkbox" '+(c.on?'checked':'')+' onchange="schedDayToggle(this,\''+k+'\')"><span class="tk"></span></label>'+
   '<input type="time" value="'+c.from+'" '+(c.on?'':'disabled')+' data-r="from">'+
-  '<input type="time" value="'+c.to+'" '+(c.on?'':'disabled')+' data-r="to"></div>';}).join('');
+  '<input type="time" value="'+c.to+'" '+(c.on?'':'disabled')+' data-r="to"></div>';}).join(''));
  const mine=PENDS();
- $('#myPending').innerHTML=mine.length?mine.map(p=>'<div class="pend-line'+(p.pushed?' done':'')+'">'+
+ setHTML($('#myPending'),mine.length?mine.map(p=>'<div class="pend-line'+(p.pushed?' done':'')+'">'+
   '<span class="pend-dot"></span><span>'+p.desc+'</span>'+
   '<span style="margin-left:auto;font-size:11.5px;color:'+(p.pushed?'#2ee6c3':'#ffb454')+'">'+(p.pushed?'✓ pushed to AI':'⏳ awaiting admin push')+'</span></div>').join('')
-  :'<span style="color:#557a75;font-size:13px">No pending changes.</span>';}
+  :'<span style="color:#557a75;font-size:13px">No pending changes.</span>');}
 function schedDayToggle(cb,k){S.schedule[k].on=cb.checked;save();renderSchedule();}
 async function pushSchedule(){
  const parts=[];

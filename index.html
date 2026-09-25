@@ -214,7 +214,7 @@ a{color:inherit}
   <div class="gate-card">
     <div class="gate-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2ee6c3" stroke-width="2" stroke-linecap="round"><path d="M12 2v6m0 4v10M5 8l7 4 7-4"/></svg></div>
     <h1>SwitchBoard — Control Room</h1>
-    <p id="gateSub">Copper Pot Kitchen · Dana Whitfield<br>Decide when your number answers with Vapi AI — and see everything it captures.</p>
+    <p id="gateSub">User name · Dana Whitfield<br>Decide when your number answers with AI — and see everything it captures.</p>
     <button class="enter-btn" onclick="enterApp()">Enter my control room →</button>
     <div class="gate-alt">Agency? <a href="switchboard-admin.html">Open the Admin panel →</a></div>
   </div>
@@ -232,12 +232,12 @@ a{color:inherit}
       <button data-view="schedule">🕐 Schedule</button>
       <button data-view="settings">⚙ Settings</button>
     </nav>
-    <div class="c-side-foot" id="sideFoot">Vapi voice agent<br>not connected yet</div>
+    <div class="c-side-foot" id="sideFoot">AI voice agent<br>not connected yet</div>
   </aside>
   <main class="c-main">
     <header class="c-top">
       <div class="biz"><span id="bizName">Business</span><small id="bizOwner">Owner</small></div>
-      <span class="live-badge" id="topBadge"><i></i><span id="topBadgeTxt">VAPI LIVE</span></span>
+      <span class="live-badge" id="topBadge"><i></i><span id="topBadgeTxt">AI LIVE</span></span>
       <span class="conn-chip conn-demo" id="connChip" onclick="showView('control');window.scrollTo(0,0)">DEMO DATA</span>
       <span class="clock" id="clock">--:--:--</span>
       <a class="top-btn" href="switchboard-admin.html">Admin panel</a>
@@ -250,14 +250,13 @@ a{color:inherit}
         <div class="hero"><div class="hero-grid">
           <div class="hero-left">
             <div class="kick">AI CALL ROUTING · MASTER SWITCH</div>
-            <div class="bignum" id="bigNumber">—</div>
             <button class="big-switch on" id="bigSwitch" onclick="flipSwitch()">
               <span class="bs-track">
                 <span class="bs-labels"><span class="l-on">ON</span><span class="l-off">OFF</span></span>
                 <span class="bs-knob"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 2v9"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg></span>
               </span>
             </button>
-            <div class="status-h live" id="statusH">Vapi is answering every call</div>
+            <div class="status-h live" id="statusH">AI is answering every call</div>
             <div class="status-s" id="statusS"></div>
             <div class="quick">
               <button class="qchip" onclick="pauseFor(60)">⏸ Pause 1 hour</button>
@@ -273,12 +272,12 @@ a{color:inherit}
               <path class="rp" id="p3" d="M248 75 C 305 75 320 114 398 114"/>
               <circle class="node" cx="44" cy="75" r="18"/><text x="44" y="108">CALLER</text>
               <circle class="node lit" cx="224" cy="75" r="21"/><text x="224" y="112">SWITCH</text>
-              <circle class="node" id="nVapi" cx="418" cy="36" r="18"/><text id="tVapi" x="418" y="70">VAPI AI</text>
+              <circle class="node" id="nVapi" cx="418" cy="36" r="18"/><text id="tVapi" x="418" y="70">AI</text>
               <circle class="node" id="nPhone" cx="418" cy="114" r="18"/><text id="tPhone" x="418" y="140">YOUR PHONE</text>
             </svg>
             <div class="voice-row">
               <div class="wave live" id="wave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
-              <small><b>Vapi voice engine</b><span id="voiceTxt">Standby</span></small>
+              <small><b>AI voice engine</b><span id="voiceTxt">Standby</span></small>
             </div>
           </div>
         </div></div>
@@ -294,7 +293,7 @@ a{color:inherit}
             <div class="panel-b"><div class="feed" id="recentList"></div></div>
           </div>
           <div class="panel">
-            <div class="panel-h"><h3>What Vapi is hearing</h3><button onclick="makeCall()" id="simHeadBtn">Simulate call</button></div>
+            <div class="panel-h"><h3>What AI is hearing</h3><button onclick="makeCall()" id="simHeadBtn">Simulate call</button></div>
             <div class="panel-b" id="intentBars"></div>
           </div>
         </div>
@@ -315,18 +314,18 @@ a{color:inherit}
       </div>
 
       <div class="c-view" id="view-bookings">
-        <div class="view-head"><h2>Bookings taken by Vapi</h2></div>
+        <div class="view-head"><h2>Bookings taken by AI</h2></div>
         <div id="bookList"></div>
       </div>
 
       <div class="c-view" id="view-orders">
-        <div class="view-head"><h2>Orders taken by Vapi</h2></div>
+        <div class="view-head"><h2>Orders taken by AI</h2></div>
         <div id="orderList"></div>
       </div>
 
       <div class="c-view" id="view-schedule">
         <div class="view-head"><h2>AI answering hours</h2>
-          <button class="push-btn" onclick="pushSchedule()">Push schedule to Vapi ↗</button></div>
+          <button class="push-btn" onclick="pushSchedule()">Push schedule to AI ↗</button></div>
         <div class="panel" style="margin-bottom:18px"><div class="panel-b" style="padding:6px 4px" id="schedGrid"></div></div>
         <div class="panel"><div class="panel-h"><h3>My pending changes</h3></div>
           <div class="panel-b" id="myPending"></div></div>
@@ -336,7 +335,7 @@ a{color:inherit}
         <div class="view-head"><h2>Voice agent settings</h2></div>
         <div class="panel" style="max-width:660px"><div class="panel-b">
           <div class="set-grid">
-            <div class="set-field"><label>Greeting Vapi answers with</label><textarea id="setGreeting" rows="3"></textarea></div>
+            <div class="set-field"><label>Greeting AI answers with</label><textarea id="setGreeting" rows="3"></textarea></div>
             <div class="set-field"><label>Fallback number if caller asks for a human</label><input type="text" id="setFallback"></div>
             <div class="set-field" style="display:flex;align-items:center;gap:12px">
               <label class="mini-sw"><input type="checkbox" id="setSpam"><span class="tk"></span></label>
@@ -385,8 +384,8 @@ function seed(){
  const now=Date.now();
  const mk=(intent,name,ago,dur,extra)=>Object.assign({id:uid(),intent,name,phone:genPhone(),at:now-ago,dur,handled:true,sent:pick(['Positive','Positive','Neutral'])},extra||{});
  return {mainOn:true,mode:'manual',lastFlip:now-52*6e4,resumeAt:0,nextOrder:1043,
-  bizName:'Copper Pot Kitchen',bizOwner:'Dana Whitfield',bizPhone:'+1 (415) 555-0132',
-  greeting:"Thanks for calling Copper Pot Kitchen — I'm the AI assistant. I can take reservations and pickup orders.",
+  bizName:'User name',bizOwner:'Dana Whitfield',bizPhone:'+1 (415) 555-0132',
+  greeting:"Thanks for calling User name — I'm the AI assistant. I can take reservations and pickup orders.",
   fallback:'+1 (415) 555-0100',spamFilter:true,
   schedule:{mon:{on:true,from:'09:00',to:'22:00'},tue:{on:true,from:'09:00',to:'22:00'},wed:{on:true,from:'09:00',to:'22:00'},thu:{on:true,from:'09:00',to:'23:00'},fri:{on:true,from:'09:00',to:'23:30'},sat:{on:true,from:'10:00',to:'23:30'},sun:{on:false,from:'10:00',to:'20:00'}},
   calls:[
@@ -422,27 +421,27 @@ function renderConnBar(){
  const el=$('#connBar');
  if(!DB.connected){
   el.innerHTML='<div class="cb"><b style="color:#ffcf8f;font-size:13px">⚠ Sample data</b>'+
-   '<input id="supaUrl" placeholder="Supabase project URL (https://xxxx.supabase.co)">'+
+   '<input id="supaUrl" placeholder="Project URL">'+
    '<input id="supaKey" placeholder="anon / public key">'+
    '<button class="cb-btn" onclick="dbConnect()">Connect</button>'+
-   '<span class="cb-hint">Paste your Supabase credentials to go live — calls then arrive from the Vapi webhook automatically.</span></div>';
+   '<span class="cb-hint">Paste your project credentials to go live — calls then arrive automatically.</span></div>';
  }else{
-  el.innerHTML='<div class="cb live"><span class="conn-chip conn-live">● LIVE — Supabase</span>'+
+  el.innerHTML='<div class="cb live"><span class="conn-chip conn-live">● LIVE</span>'+
    '<span style="font-size:12.5px;color:#8fb0ac">Acting as:</span>'+
    '<select onchange="switchBiz(this.value)">'+DB.list.map(b=>'<option value="'+b.id+'"'+(b.id===DB.biz.id?' selected':'')+'>'+b.name+'</option>').join('')+'</select>'+
-   '<span class="cb-hint" style="width:auto;flex:1">New calls sync every 15 s from the vapi-webhook.</span>'+
+   '<span class="cb-hint" style="width:auto;flex:1">New calls sync every 15 s.</span>'+
    '<button class="cb-x" onclick="dbDisconnect()">Disconnect</button></div>';
  }
  const chip=$('#connChip');chip.className='conn-chip '+(DB.connected?'conn-live':'conn-demo');
  chip.textContent=DB.connected?'● LIVE':'DEMO DATA';
  $('#sideFoot').innerHTML=DB.connected
-  ?'Vapi voice agent<br>connected to <b style="color:#8fb0ac">'+(DB.biz.phone||'—')+'</b>'
-  :'Vapi voice agent<br>not connected yet';
+  ?'AI voice agent<br>connected to <b style="color:#8fb0ac">'+(DB.biz.phone||'—')+'</b>'
+  :'AI voice agent<br>not connected yet';
 }
 async function dbConnect(preferBizId){
  const url=$('#supaUrl')?$('#supaUrl').value.trim():'',key=$('#supaKey')?$('#supaKey').value.trim():'';
- if(!url||!key){toast('Paste both the Supabase URL and anon key','warn');return;}
- if(!window.supabase){toast('Supabase JS failed to load — check connection','bad');return;}
+ if(!url||!key){toast('Paste both the project URL and key','warn');return;}
+ if(!window.supabase){toast('Connection library failed to load — check connection','bad');return;}
  try{
   const sb=window.supabase.createClient(url,key);
   const {data,error}=await sb.from('sb_businesses').select('*').order('name');
@@ -499,7 +498,7 @@ async function flipSwitch(){
   DB.biz.vapi_enabled=target;}
  S.mainOn=target;S.lastFlip=Date.now();S.resumeAt=0;switching=false;
  el.classList.remove('switching');save();renderControl();
- toast(target?'✓ Number routed to Vapi — AI is answering':'Calls now ring your phone directly',target?'ok':'warn');
+ toast(target?'✓ Number routed to AI — AI is answering':'Calls now ring your phone directly',target?'ok':'warn');
  if(target&&!DB.connected)setTimeout(makeCall,4200);}
 function pauseFor(min){S.mainOn=false;S.resumeAt=Date.now()+min*6e4;save();renderControl();
  if(DB.connected)DB.sb.from('sb_businesses').update({vapi_enabled:false}).eq('id',DB.biz.id);
@@ -523,15 +522,14 @@ function tween(el,val,suf){const from=+el.dataset.v||0;el.dataset.v=val;suf=suf|
 function renderControl(){
  const on=S.mainOn;
  $('#bizName').textContent=S.bizName;$('#bizOwner').textContent=S.bizOwner;
- $('#bigNumber').textContent=S.bizPhone||'+1 (—) ———';
  $('#bigSwitch').classList.toggle('on',on);
- const h=$('#statusH');h.textContent=on?'Vapi is answering every call':'Calls ring your phone directly';
+ const h=$('#statusH');h.textContent=on?'AI is answering every call':'Calls ring your phone directly';
  h.className='status-h '+(on?'live':'deadc');
  $('#statusS').textContent=(on?'Callers hear your AI host. Bookings and orders appear below the moment they\u2019re captured. ':'AI is off — callers reach you or voicemail. ')+'Switched '+relTime(S.lastFlip)+'.';
  $('#topBadge').classList.toggle('off',!on);
- $('#topBadgeTxt').textContent=on?'VAPI LIVE':'AI OFF';
+ $('#topBadgeTxt').textContent=on?'AI LIVE':'AI OFF';
  $('#wave').classList.toggle('live',on);
- $('#voiceTxt').textContent=DB.connected?(on?'Live — calls sync from Supabase every 15 s':'Standby — engine idle'):(on?'Listening · speaking · extracting details in real time':'Standby — engine idle');
+ $('#voiceTxt').textContent=DB.connected?(on?'Live — calls sync every 15 s':'Standby — engine idle'):(on?'Listening · speaking · extracting details in real time':'Standby — engine idle');
  $('#p1').setAttribute('class','rp '+(on?'hot':'hot-amb'));
  $('#p2').setAttribute('class','rp'+(on?' hot':''));
  $('#p3').setAttribute('class','rp'+(!on?' hot-amb':''));
@@ -561,18 +559,18 @@ function callCard(c){
  const chips={booking:['chip-b','Booking'],order:['chip-o','Order'],enquiry:['chip-e','Enquiry'],support:['chip-s','Support'],spam:['chip-x','Spam'],missed:['chip-m','Missed']};
  const ch=chips[c.intent]||chips.enquiry;
  let ex='';
- if(c.book){ex='<div class="extract ex-b"><div class="ex-head">📅 Appointment captured by Vapi</div>'+
+ if(c.book){ex='<div class="extract ex-b"><div class="ex-head">📅 Appointment captured by AI</div>'+
   '<div class="ex-row"><span>Party / service</span><b>'+c.book.svc+'</b></div>'+
   '<div class="ex-row"><span>Date & time</span><b>'+c.book.when+'</b></div>'+
   '<div class="ex-row"><span>Note</span><b>'+c.book.note+'</b></div>'+
-  '<span class="pushed">✓ Synced to calendar via Vapi</span></div>';}
- if(c.order){ex='<div class="extract ex-o"><div class="ex-head">🛍 Order captured by Vapi · '+c.order.id+'</div>'+
+  '<span class="pushed">✓ Synced to calendar via AI</span></div>';}
+ if(c.order){ex='<div class="extract ex-o"><div class="ex-head">🛍 Order captured by AI · '+c.order.id+'</div>'+
   c.order.lines.map(l=>'<div class="ex-row"><span>'+l[0]+'</span><b>$'+(+l[1]).toFixed(2)+'</b></div>').join('')+
   '<div class="ex-row total"><span>Total</span><b>$'+(+c.order.total).toFixed(2)+'</b></div>'+
   '<div class="ex-row"><span>Pickup</span><b>'+c.order.pickup+'</b></div>'+
   '<span class="pushed" style="color:#ffb454;background:rgba(255,180,84,.1)">✓ Sent to kitchen · order '+c.order.id+'</span></div>';}
  if(c.topic){ex='<div class="extract" style="background:rgba(109,180,255,.06);border:1px dashed rgba(109,180,255,.3);color:#bcd6d1"><b style="color:#a4d2ff">Topic:</b> '+c.topic+'</div>';}
- const det=(c.summary||c.transcript)?'<details><summary>▸ Vapi summary'+(c.transcript?' & transcript':'')+'</summary><p>'+
+ const det=(c.summary||c.transcript)?'<details><summary>▸ AI summary'+(c.transcript?' & transcript':'')+'</summary><p>'+
   (c.summary?'<b>Summary:</b> '+c.summary+'\n':'')+(c.transcript?'<b>Transcript:</b>\n'+c.transcript:'')+'</p></details>':'';
  return '<article class="call-card'+(c.handled?'':' missed')+'">'+
   '<div class="cc-top"><span class="avatar" style="--h:'+hueOf(c.name)+'">'+c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()+'</span>'+
@@ -581,12 +579,12 @@ function callCard(c){
   '<span class="sent"><i style="background:'+(SENTC[c.sent]||'#8fb0ac')+'"></i>'+c.sent+'</span>'+
   '<div class="cc-when"><b>'+whenTxt(c.at)+'</b><br>'+(c.dur?fmtDur(c.dur):'no answer')+'</div></div>'+
   '<div class="cc-body">'+ex+det+'</div>'+
-  '<div class="cc-foot"><span>'+(c.handled?'⚡ Handled by Vapi AI':'✕ Missed — AI was switched off')+'</span>'+
-  '<span>'+(c.vapi?'from Vapi webhook':'local')+'</span></div></article>';}
+  '<div class="cc-foot"><span>'+(c.handled?'⚡ Handled by AI':'✕ Missed — AI was switched off')+'</span>'+
+  '<span>'+(c.vapi?'from AI':'local')+'</span></div></article>';}
 function renderCalls(){
  let list=CALLS();
  if(callFilter!=='all')list=callFilter==='missed'?list.filter(c=>!c.handled):list.filter(c=>c.intent===callFilter&&c.handled);
- $('#callFeed').innerHTML=list.map(callCard).join('')||'<div class="empty">Nothing here yet.'+(DB.connected?'<br>Calls appear when Vapi posts its end-of-call report to your webhook.':'')+'</div>';}
+ $('#callFeed').innerHTML=list.map(callCard).join('')||'<div class="empty">Nothing here yet.'+(DB.connected?'<br>Calls appear when AI posts its end-of-call report to your webhook.':'')+'</div>';}
 $$('#callFilters .fbtn').forEach(b=>b.addEventListener('click',()=>{callFilter=b.dataset.f;
  $$('#callFilters .fbtn').forEach(x=>x.classList.toggle('act',x===b));renderCalls();}));
 function renderBookings(){
@@ -609,7 +607,7 @@ function renderSchedule(){
  const mine=PENDS();
  $('#myPending').innerHTML=mine.length?mine.map(p=>'<div class="pend-line'+(p.pushed?' done':'')+'">'+
   '<span class="pend-dot"></span><span>'+p.desc+'</span>'+
-  '<span style="margin-left:auto;font-size:11.5px;color:'+(p.pushed?'#2ee6c3':'#ffb454')+'">'+(p.pushed?'✓ pushed to Vapi':'⏳ awaiting admin push')+'</span></div>').join('')
+  '<span style="margin-left:auto;font-size:11.5px;color:'+(p.pushed?'#2ee6c3':'#ffb454')+'">'+(p.pushed?'✓ pushed to AI':'⏳ awaiting admin push')+'</span></div>').join('')
   :'<span style="color:#557a75;font-size:13px">No pending changes.</span>';}
 function schedDayToggle(cb,k){S.schedule[k].on=cb.checked;save();renderSchedule();}
 async function pushSchedule(){
@@ -624,14 +622,14 @@ async function pushSchedule(){
  if(DB.connected){
   const {error}=await DB.sb.from('sb_pending_changes').insert({business_id:DB.biz.id,biz_name:DB.biz.name,description:desc});
   if(error){toast('Insert failed: '+error.message,'bad');return;}
-  toast('Schedule sent — admin will mark it pushed to Vapi','ok');refreshLive();return;}
+  toast('Schedule sent — admin will mark it pushed to AI','ok');refreshLive();return;}
  if(!S.pending)S.pending=[];
  S.pending.unshift({id:uid(),client:S.bizName,desc,pushed:false});save();renderSchedule();
- toast('Schedule sent — admin will mark it pushed to Vapi ↗','ok');}
+ toast('Schedule sent — admin will mark it pushed to AI ↗','ok');}
 function renderSettings(){$('#setGreeting').value=S.greeting;$('#setFallback').value=S.fallback;$('#setSpam').checked=S.spamFilter;}
 function saveSettings(){S.greeting=$('#setGreeting').value;S.fallback=$('#setFallback').value;S.spamFilter=$('#setSpam').checked;save();
  if(DB.connected)DB.sb.from('sb_businesses').update({fallback_phone:S.fallback}).eq('id',DB.biz.id);
- toast('Settings saved'+(DB.connected?' & pushed to Supabase':''),'ok');}
+ toast('Settings saved'+(DB.connected?' & saved to cloud':''),'ok');}
 function renderAll(){renderControl();renderCalls();renderBookings();renderOrders();renderSchedule();renderSettings();}
 
 async function makeCall(){
@@ -641,7 +639,7 @@ async function makeCall(){
    sentiment:'Neutral',summary:'Test entry from SwitchBoard to verify the write path.',
    structured:{intent:'enquiry',sentiment:'Neutral',topic:'Pipeline test'},handled:true});
   if(error){toast('Insert failed: '+error.message,'bad');return;}
-  toast('Test call written to Supabase ✓','ok');setTimeout(refreshLive,700);return;}
+  toast('Test call written ✓','ok');setTimeout(refreshLive,700);return;}
  const now=Date.now(),name=pick(NAMES),phone=genPhone();
  if(!S.mainOn){S.calls.unshift({id:uid(),intent:'missed',name,phone,at:now,dur:0,handled:false,sent:'Neutral'});
   save();renderControl();renderCalls();toast('✕ Missed call from '+name+' — AI is off','bad');return;}
@@ -669,13 +667,13 @@ setInterval(()=>{
 setInterval(()=>{
  if(S.resumeAt&&Date.now()>S.resumeAt){S.resumeAt=0;S.mainOn=true;save();
   if(DB.connected)DB.sb.from('sb_businesses').update({vapi_enabled:true}).eq('id',DB.biz?.id);
-  renderControl();toast('⏸ Pause ended — Vapi answering again','ok');}
+  renderControl();toast('⏸ Pause ended — AI answering again','ok');}
  if(S.mode==='schedule'&&!DB.connected&&!$('#app').classList.contains('hidden'))applyScheduleNow(false);},5000);
 
 /* init */
 loadLocal();renderConnBar();
 (function(){
- // Live Supabase project (anon key is public/client-side by design)
+ // Live project (anon key is public/client-side by design)
  const DEFAULT_SUPA={url:'https://suiilufpgjkbiawetttd.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1aWlsdWZwZ2prYmlhd2V0dHRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyMDUwNzIsImV4cCI6MjA5ODc4MTA3Mn0.tNISiQiyVFZxbP72TMxIy1IWiNkvHrjLqCEKjwh8MKQ'};
  let c=JSON.parse(localStorage.getItem(CONN)||'null')||DEFAULT_SUPA;
  setTimeout(()=>{ if(!DB.connected){const bar=$('#connBar');

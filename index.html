@@ -216,18 +216,16 @@ a{color:inherit}
       <button data-view="orders">🛍 Orders</button>
       <button data-view="schedule">🕐 Schedule</button>
     </nav>
-    <div class="c-side-foot" id="sideFoot">Voice agent<br>not connected yet</div>
+
   </aside>
   <main class="c-main">
     <header class="c-top">
       <div class="biz"><span id="bizName">Business</span><small id="bizOwner">Owner</small></div>
       <span class="live-badge" id="topBadge"><i></i><span id="topBadgeTxt">AGENT LIVE</span></span>
-      <span class="conn-chip conn-demo" id="connChip" onclick="showView('control');window.scrollTo(0,0)">DEMO DATA</span>
       <span class="clock" id="clock">--:--:--</span>
       <a class="top-btn" href="admin.html">Admin panel</a>
     </header>
     <div class="c-views">
-      <div id="connBar"></div>
 
       <div class="c-view on" id="view-control">
         <div class="hero"><div class="hero-grid">
@@ -388,12 +386,7 @@ const ORDS=()=>DB.connected?live.orders:S.orders;
 const PENDS=()=>DB.connected?live.pending:S.pending;
 
 /* connect */
-function renderConnBar(){
- const el=$('#connBar');
- if(el) el.innerHTML='<div class="cb"><b style="color:#ffcf8f;font-size:13px">⚠ Sample data</b><span class="cb-hint">Local demo mode.</span></div>';
- const chip=$('#connChip'); if(chip){chip.className='conn-chip conn-demo';chip.textContent='DEMO DATA';}
- const sf=$('#sideFoot'); if(sf) sf.innerHTML='Voice agent<br>local demo only';
-}
+function renderConnBar(){/* no-op: no connection UI */}
 function syncBiz(){if(!DB.biz)return;
  S.bizName=DB.biz.name;S.bizOwner=DB.biz.owner||'Owner';S.bizPhone=DB.biz.phone||'+1 (—) ———';
  S.mainOn=!!DB.biz.vapi_enabled;if(DB.biz.fallback_phone)S.fallback=DB.biz.fallback_phone;save();}

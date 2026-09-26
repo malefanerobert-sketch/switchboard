@@ -212,22 +212,7 @@ a{color:inherit}
 #authForm{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
 #authForm input{background:#0d181b;border:1px solid rgba(233,245,242,.1);color:#e9f5f2;padding:12px 14px;border-radius:10px;outline:none;transition:.15s}
 #authForm input:focus{border-color:rgba(46,230,195,.55);box-shadow:0 0 0 3px rgba(46,230,195,.12)}
-#authMsg{font-size:12.5px;min-height:16px;text-align:left;margin:-4px 0 4px}
-#authMsg.err{color:#ff9c8f}#authMsg.ok{color:#8fead4}
 /* create-business modal */
-#bizModal{position:fixed;inset:0;background:rgba(6,12,14,.72);backdrop-filter:blur(6px);display:none;place-items:center;z-index:998}
-#bizModal.on{display:grid}
-.biz-card{width:min(460px,92vw);background:linear-gradient(160deg,#101f23,#0d181b);border:1px solid rgba(233,245,242,.1);border-radius:16px;padding:26px;animation:fadeUp .35s both}
-.biz-card h2{font-family:var(--fd);font-size:19px;margin-bottom:6px}
-.biz-card p{font-size:13px;color:#8fb0ac;margin-bottom:16px}
-.biz-card .set-field{margin-bottom:10px}
-.biz-card label{font-size:12px;color:#8fb0ac;display:block;margin-bottom:4px}
-.biz-card input{width:100%;background:#0d181b;border:1px solid rgba(233,245,242,.1);color:#e9f5f2;padding:11px 12px;border-radius:9px;outline:none}
-.biz-card input:focus{border-color:rgba(46,230,195,.55)}
-.biz-card .row{display:flex;gap:8px;margin-top:14px}
-.biz-card .row button{flex:1;padding:12px;border-radius:10px;font-family:var(--fd);font-weight:700}
-.biz-primary{background:linear-gradient(135deg,#12695a,#0e9579);color:#eafffa}
-.biz-ghost{background:transparent;border:1px solid rgba(233,245,242,.15);color:#bcd6d1}
 
 /* ===== SwitchBoard auth (JobAgent-style) ===== */
 #authWrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
@@ -298,29 +283,9 @@ a{color:inherit}
       <div class="a-err" id="siErr"></div>
       <button class="a-btn" id="siBtn" onclick="doSignin()">Sign in →</button>
       <div class="a-links">
-        <a onclick="showAuth('signup')">Create an account</a>
         <a onclick="showAuth('forgot')">Forgot password?</a>
       </div>
       <div class="a-alt">Agency? <a href="admin.html">Open the Admin panel →</a></div>
-    </div>
-
-    <!-- sign up -->
-    <div id="p-signup" class="hidden">
-      <div class="a-field"><label>Full name</label><input id="suName" placeholder="Your name"></div>
-      <div class="a-field"><label>Email</label><input id="suEmail" type="email" placeholder="you@example.com" autocomplete="email"></div>
-      <div class="a-field"><label>Confirm email</label><input id="suEmail2" type="email" placeholder="Repeat your email" autocomplete="email"></div>
-      <div class="a-field"><label>Password</label>
-        <div class="pw-wrap"><input id="suPass" type="password" placeholder="Min. 6 characters" autocomplete="new-password">
-          <button type="button" class="pw-toggle" data-target="suPass" aria-label="Show password">show</button></div>
-      </div>
-      <div class="a-field"><label>Confirm password</label>
-        <div class="pw-wrap"><input id="suPass2" type="password" placeholder="Repeat password" autocomplete="new-password">
-          <button type="button" class="pw-toggle" data-target="suPass2" aria-label="Show password">show</button></div>
-      </div>
-      <label class="a-remember"><input id="suRemember" type="checkbox" checked> Stay signed in</label>
-      <div class="a-err" id="suErr"></div>
-      <button class="a-btn" id="suBtn" onclick="doSignup()">Register</button>
-      <div class="a-links"><a onclick="showAuth('signin')">← Back to sign in</a></div>
     </div>
 
     <!-- forgot -->
@@ -350,20 +315,6 @@ a{color:inherit}
   </div>
 </div>
 
-<!-- create-business modal -->
-<div id="bizModal">
-  <div class="biz-card">
-    <h2>Set up your business</h2>
-    <p>You're signed in — add your first business to start.</p>
-    <div class="set-field"><label>Business name</label><input id="bizName" placeholder="e.g. Copper Pot Kitchen"></div>
-    <div class="set-field"><label>Your name (shown as owner)</label><input id="bizOwner" placeholder="Your name"></div>
-    <div class="set-field"><label>Your Vapi phone number</label><input id="bizPhone" placeholder="+1 555 555 0100"></div>
-    <div class="set-field"><label>Fallback number (rings your phone when switch is OFF)</label><input id="bizFallback" placeholder="+1 555 555 0101"></div>
-    <div class="row">
-      <button type="button" class="biz-ghost" onclick="signOut()">Sign out</button>
-      <button type="button" class="biz-primary" onclick="createBusiness()">Create</button>
-    </div>
-  </div>
 </div>
 
 <!-- app -->
@@ -376,7 +327,6 @@ a{color:inherit}
       <button data-view="bookings">📅 Bookings</button>
       <button data-view="orders">🛍 Orders</button>
       <button data-view="schedule">🕐 Schedule</button>
-      <button data-view="settings">⚙ Settings</button>
     </nav>
     <div class="c-side-foot" id="sideFoot">Voice agent<br>not connected yet</div>
   </aside>
@@ -476,22 +426,6 @@ a{color:inherit}
         <div class="panel"><div class="panel-h"><h3>My pending changes</h3></div>
           <div class="panel-b" id="myPending"></div></div>
       </div>
-
-      <div class="c-view" id="view-settings">
-        <div class="view-head"><h2>Voice agent settings</h2></div>
-        <div class="panel" style="max-width:660px"><div class="panel-b">
-          <div class="set-grid">
-            <div class="set-field"><label>Fallback number if caller asks for a human</label><input type="text" id="setFallback"></div>
-            <div class="set-field" style="display:flex;align-items:center;gap:12px">
-              <label class="mini-sw"><input type="checkbox" id="setSpam"><span class="tk"></span></label>
-              <span style="font-size:13.5px;color:#bcd6d1">Auto-block spam / robocalls</span></div>
-            <div class="set-field"><label>Your Vapi API key (private key)</label><input type="password" id="setVapiKey" placeholder="vapi_xxx"></div>
-            <div class="set-field"><label>Vapi phone-number ID</label><input type="text" id="setVapiPhone" placeholder="UUID from Vapi › Phone Numbers"></div>
-            <div class="set-field"><label>Vapi assistant ID</label><input type="text" id="setVapiAssistant" placeholder="UUID from Vapi › Assistants"></div>
-            <div style="font-size:12px;color:#8fb0ac;margin-top:-4px">When the switch is ON, we tell Vapi to assign this assistant to your number. When OFF, we clear it so calls follow your Vapi fallback / forwarding.</div>
-            <div><button class="sim-btn" onclick="saveSettings()">Save</button></div>
-          </div>
-        </div></div>
       </div>
     </div>
   </main>
@@ -573,7 +507,7 @@ function renderConnBar(){
   el.innerHTML='<div class="cb live"><span class="conn-chip conn-live">● LIVE</span>'+
    '<span style="font-size:12.5px;color:#8fb0ac">Acting as:</span>'+
    '<select onchange="switchBiz(this.value)">'+DB.list.map(b=>'<option value="'+b.id+'"'+(b.id===DB.biz.id?' selected':'')+'>'+b.name+'</option>').join('')+'</select>'+
-   '<button class="cb-btn" onclick="openBizModal()">+ New business</button>'+
+   
    '<span class="cb-hint" style="width:auto;flex:1">New calls sync every 15 s.</span></div>';
  }else{
   el.innerHTML='<div class="cb"><b style="color:#ffcf8f;font-size:13px">⚠ Sample data</b>'+
@@ -615,32 +549,6 @@ async function doSignin(){
   await onSignedIn();
  }catch(e){ err.textContent=e.message||'Wrong email or password.'; btn.disabled=false; btn.textContent='Sign in \u2192'; }
 }
-async function doSignup(){
- if(!DB.sb){toast('Supabase client not ready','bad');return;}
- const name=$('#suName').value.trim(), email=$('#suEmail').value.trim(), email2=$('#suEmail2').value.trim();
- const pass=$('#suPass').value, pass2=$('#suPass2').value;
- const err=$('#suErr'), btn=$('#suBtn');
- err.textContent='';
- if(!name||!email||!email2||!pass){err.textContent='Fill in all fields.';return;}
- if(!/^\S+@\S+\.\S+$/.test(email)){err.textContent='Enter a valid email address.';return;}
- if(email.toLowerCase()!==email2.toLowerCase()){err.textContent='Emails don\u2019t match.';return;}
- if(pass.length<6){err.textContent='Password must be at least 6 characters.';return;}
- if(pass!==pass2){err.textContent='Passwords don\u2019t match.';return;}
- btn.disabled=true; btn.textContent='Creating account\u2026';
- try{
-  const {data,error}=await DB.sb.auth.signUp({email,password:pass,options:{data:{full_name:name}}});
-  if(error) throw error;
-  if(!data.session){
-   showAuth('signin');
-   $('#siEmail').value=email;
-   $('#siErr').className='a-ok';
-   $('#siErr').textContent='Check your inbox to confirm your email, then sign in.';
-   btn.disabled=false; btn.textContent='Register';
-   return;
-  }
-  await onSignedIn();
- }catch(e){ err.textContent=e.message||'Sign-up failed.'; btn.disabled=false; btn.textContent='Register'; }
-}
 async function doForgot(){
  if(!DB.sb){toast('Supabase client not ready','bad');return;}
  const email=$('#fpEmail').value.trim();
@@ -673,35 +581,16 @@ async function doNewPass(){
  finally{ btn.disabled=false; btn.textContent='Update password'; }
 }
 async function onSignedIn(){
- // clear any lingering messages / button states on the sign-in panel
- ['siErr','suErr','fpErr','npErr'].forEach(id=>{const el=document.getElementById(id);if(el){el.textContent='';el.className=el.id==='siErr'?'a-err':(el.className||'a-err');}});
- ['siBtn','suBtn','fpBtn','npBtn'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=false;});
- const _si=document.getElementById('siBtn'); if(_si) _si.textContent='Sign in \u2192';
- const _su=document.getElementById('suBtn'); if(_su) _su.textContent='Register';
+ ['siBtn','suBtn','fpBtn','npBtn'].forEach(id=>{var b=document.getElementById(id);if(b)b.disabled=false;});['siErr','suErr'].forEach(id=>{var e=document.getElementById(id);if(e)e.textContent='';});
  DB.connected=true;
  const {data,error}=await DB.sb.from('sb_businesses').select('*').order('name');
  if(error){toast('Load failed: '+error.message,'bad');return;}
  DB.list=data||[];
  const saved=JSON.parse(localStorage.getItem(CONN)||'{}');
  DB.biz=DB.list.find(b=>b.id===saved.bizId)||DB.list[0]||null;
- if(!DB.biz){enterApp();openBizModal();renderConnBar();return;}
+ if(!DB.biz){enterApp();renderConnBar();toast('No business is linked to your account. Ask your admin to add one.','warn');return;}
  localStorage.setItem(CONN,JSON.stringify({bizId:DB.biz.id}));
  syncBiz();enterApp();renderConnBar();toast('✓ Signed in','ok');await refreshLive();
-}
-function openBizModal(){$('#bizModal').classList.add('on');setTimeout(()=>$('#bizName').focus(),50);}
-function closeBizModal(){$('#bizModal').classList.remove('on');}
-async function createBusiness(){
- const name=$('#bizName').value.trim(),owner=$('#bizOwner').value.trim(),
-       phone=$('#bizPhone').value.trim(),fallback=$('#bizFallback').value.trim();
- if(!name){toast('Business name is required','warn');return;}
- const u=(await DB.sb.auth.getUser()).data.user;
- const {data,error}=await DB.sb.from('sb_businesses').insert({
-  name,owner:owner||u.email,phone,fallback_phone:fallback,vapi_enabled:false,owner_user_id:u.id
- }).select().single();
- if(error){toast('Create failed: '+error.message,'bad');return;}
- DB.list.push(data);DB.biz=data;
- localStorage.setItem(CONN,JSON.stringify({bizId:DB.biz.id}));
- syncBiz();closeBizModal();renderConnBar();renderAll();toast('✓ Business created','ok');
 }
 async function dbDisconnect(){
  try{if(DB.sb)await DB.sb.auth.signOut();}catch(e){}
@@ -737,7 +626,7 @@ function enterApp(){var g=document.getElementById('authWrap')||document.getEleme
 function signOut(){$('#app').classList.add('hidden');var g=document.getElementById('authWrap')||document.getElementById('gate');if(g)g.classList.remove('hidden');showAuth('signin');}
 function showView(v){$$('.c-view').forEach(x=>x.classList.toggle('on',x.id==='view-'+v));
  $$('.cnav button').forEach(b=>b.classList.toggle('act',b.dataset.view===v));
- ({control:renderControl,calls:renderCalls,bookings:renderBookings,orders:renderOrders,schedule:renderSchedule,settings:renderSettings})[v]();}
+ const _rmap={control:renderControl,calls:renderCalls,bookings:renderBookings,orders:renderOrders,schedule:renderSchedule}; if(_rmap[v]) _rmap[v]();}
 $$('.cnav button').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
 
 /* switch */
@@ -896,19 +785,7 @@ async function pushSchedule(){
  if(!S.pending)S.pending=[];
  S.pending.unshift({id:uid(),client:S.bizName,desc,pushed:false});save();renderSchedule();
  toast('Schedule sent — admin will mark it pushed to agent ↗','ok');}
-function renderSettings(){$('#setFallback').value=S.fallback;$('#setSpam').checked=S.spamFilter;if(DB.biz){$('#setVapiKey').value=DB.biz.vapi_api_key||'';$('#setVapiPhone').value=DB.biz.vapi_phone_number_id||'';$('#setVapiAssistant').value=DB.biz.vapi_assistant_id||'';}}
-async function saveSettings(){S.fallback=$('#setFallback').value;S.spamFilter=$('#setSpam').checked;save();
- if(DB.connected&&DB.biz){
-  const payload={fallback_phone:S.fallback,
-   vapi_api_key:($('#setVapiKey').value||'').trim()||null,
-   vapi_phone_number_id:($('#setVapiPhone').value||'').trim()||null,
-   vapi_assistant_id:($('#setVapiAssistant').value||'').trim()||null};
-  const {data,error}=await DB.sb.from('sb_businesses').update(payload).eq('id',DB.biz.id).select().single();
-  if(error){toast('Save failed: '+error.message,'bad');return;}
-  if(data)DB.biz=data;
- }
- toast('Settings saved'+(DB.connected?' & saved to cloud':''),'ok');}
-function renderAll(){renderControl();renderCalls();renderBookings();renderOrders();renderSchedule();renderSettings();}
+function renderAll(){renderControl();renderCalls();renderBookings();renderOrders();renderSchedule();}
 
 async function makeCall(){
  if(DB.connected){

@@ -155,61 +155,10 @@ a{color:#2ee6c3;font-weight:600;text-decoration:none}
 
 <div id="toasts"></div>
 
-<!-- gate (JobAgent-style admin sign-in) -->
-<div id="authWrap">
-  <div class="auth-card">
-    <div class="a-brand">
-      <div class="a-pulse"><span class="dish"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2ee6c3" stroke-width="2" stroke-linecap="round"><path d="M12 2v6m0 4v10M5 8l7 4 7-4"/></svg></span></div>
-      <h1><span class="sb-a">Switch</span><span class="sb-b">Board</span></h1>
-      <p>Admin control panel</p>
-    </div>
-
-    <!-- sign in -->
-    <div id="p-signin">
-      <p class="a-note">Sign in with your admin account.</p>
-      <div class="a-field"><label>Email</label><input id="liEmail" type="email" autocomplete="username" placeholder="you@switchboard.app"></div>
-      <div class="a-field"><label>Password</label>
-        <div class="pw-wrap"><input id="liPassword" type="password" autocomplete="current-password" placeholder="••••••••">
-          <button type="button" class="pw-toggle" data-target="liPassword" aria-label="Show password">show</button></div>
-      </div>
-      <div class="a-err" id="liMsg"></div>
-      <button class="a-btn" id="liSubmit" onclick="handleLogin(event)">Sign in →</button>
-      <div class="a-links">
-        <a onclick="showAuth('forgot')">Forgot password?</a>
-        <a href="index.html">← Back to SwitchBoard</a>
-      </div>
-    </div>
-
-    <!-- forgot -->
-    <div id="p-forgot" class="hidden">
-      <p class="a-note">Enter the email on your admin account and we'll send you a link to reset your password.</p>
-      <div class="a-field"><label>Email</label><input id="fpEmail" type="email" placeholder="you@switchboard.app" autocomplete="email"></div>
-      <div class="a-err" id="fpErr"></div>
-      <div class="a-ok hidden" id="fpOk"></div>
-      <button class="a-btn" id="fpBtn" onclick="doForgot()">Send reset link</button>
-      <div class="a-links"><a onclick="showAuth('signin')">← Back to sign in</a></div>
-    </div>
-
-    <!-- new password (from emailed link) -->
-    <div id="p-newpass" class="hidden">
-      <p class="a-note">Enter a new password for your admin account.</p>
-      <div class="a-field"><label>New password</label>
-        <div class="pw-wrap"><input id="npPass" type="password" placeholder="Min. 6 characters" autocomplete="new-password">
-          <button type="button" class="pw-toggle" data-target="npPass" aria-label="Show password">show</button></div>
-      </div>
-      <div class="a-field"><label>Confirm new password</label>
-        <div class="pw-wrap"><input id="npPass2" type="password" autocomplete="new-password">
-          <button type="button" class="pw-toggle" data-target="npPass2" aria-label="Show password">show</button></div>
-      </div>
-      <div class="a-err" id="npErr"></div>
-      <button class="a-btn" id="npBtn" onclick="doNewPass()">Update password</button>
-    </div>
-  </div>
-</div>
-
+<!-- login removed: admin opens directly -->
 
 <!-- app -->
-<section id="app" class="hidden">
+<section id="app">
   <aside class="side">
     <div class="brand">
       <div class="gate-logo" style="width:32px;height:32px;margin:0">
@@ -222,7 +171,6 @@ a{color:#2ee6c3;font-weight:600;text-decoration:none}
       <button data-view="settings">⚙ Settings</button>
     </nav>
     <div class="foot" id="whoami">—</div>
-    <button class="signout" onclick="handleSignOut()">Sign out</button>
   </aside>
 
   <main class="main">
@@ -231,9 +179,10 @@ a{color:#2ee6c3;font-weight:600;text-decoration:none}
       <div class="view-head">
         <div>
           <h1>Clients</h1>
-          <div class="sub">Manage tenant businesses — pause, freeze, or edit each account's settings.</div>
+          <div class="sub">Users register themselves from the portal. Here you can pause, reactivate or delete accounts, view each user's passcode, and set their AI prompt.</div>
         </div>
       </div>
+
       <div class="searchbar">
         <input id="clientSearch" placeholder="Search by business name, client id, or email…" oninput="renderClients()">
       </div>
@@ -244,9 +193,14 @@ a{color:#2ee6c3;font-weight:600;text-decoration:none}
     <div class="view hidden" id="view-settings">
       <div class="view-head"><h1>Settings</h1></div>
       <div class="panel">
-        <h3>Admin account</h3>
-        <div class="h-sub">These are the details for the currently signed-in admin.</div>
+        <h3>Admin access</h3>
+        <div class="h-sub">This panel opens without a sign-in.</div>
         <div id="adminInfo">—</div>
+      </div>
+      <div class="panel">
+        <h3>Portal URL</h3>
+        <div class="h-sub">Share this address with people who should create an account.</div>
+        <code id="baseUrl" style="font-size:12.5px;color:#8fead4">—</code>
       </div>
     </div>
   </main>
@@ -258,6 +212,7 @@ const SUPA={
   url:'https://suiilufpgjkbiawetttd.supabase.co',
   key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1aWlsdWZwZ2prYmlhd2V0dHRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyMDUwNzIsImV4cCI6MjA5ODc4MTA3Mn0.tNISiQiyVFZxbP72TMxIy1IWiNkvHrjLqCEKjwh8MKQ'
 };
+const PORTAL_BASE = location.origin + location.pathname.replace(/admin\.html.*$/, 'index.html');
 
 const $=(s)=>document.querySelector(s);
 const $$=(s)=>document.querySelectorAll(s);
@@ -307,10 +262,10 @@ async function handleSignOut(){
   $('#liSubmit').disabled=false;
 }
 function enterApp(){
-  var _g=document.getElementById('authWrap')||document.getElementById('gate'); if(_g) _g.style.display='none';
   document.getElementById('app').classList.remove('hidden');
-  $('#whoami').innerHTML='Signed in as<br><b style="color:#eafffa">'+esc(ME.email)+'</b>';
-  $('#adminInfo').innerHTML='<b>'+esc(ME.email)+'</b><br><span style="color:#8fb0ac;font-size:12.5px">user id: '+esc(ME.id)+'</span>';
+  $('#whoami').innerHTML='<b style="color:#eafffa">Admin</b>';
+  $('#adminInfo').innerHTML='<span style="color:#8fb0ac;font-size:12.5px">Open access — no sign-in required for this panel.</span>';
+  $('#baseUrl').textContent=PORTAL_BASE;
   loadClients();
 }
 
@@ -384,6 +339,31 @@ $$('.side .nav button').forEach(b=>{
   });
 });
 
+/* ============ Vapi assistant provisioning ============ */
+async function provisionClient(id, btn){
+  const c=CLIENTS.find(x=>x.id===id); if(!c) return;
+  if(btn){btn.disabled=true;btn.textContent='Creating…';}
+  try{
+    const r=await fetch(SUPA.url+'/functions/v1/provision-assistant',{
+      method:'POST',
+      headers:{'apikey':SUPA.key,'Authorization':'Bearer '+SUPA.key,'Content-Type':'application/json'},
+      body:JSON.stringify({business_id:id})
+    });
+    const j=await r.json();
+    if(j&&j.assistantId){
+      c.vapi_assistant_id=j.assistantId;
+      renderClients();
+      toast(j.already?'Assistant already existed':'✓ Assistant created','ok');
+    }else{
+      if(btn){btn.disabled=false;btn.textContent='⚡ Create assistant';}
+      toast('Failed: '+((j&&j.error)||'unknown'),'bad');
+    }
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent='⚡ Create assistant';}
+    toast('Failed: '+((e&&e.message)||'network error'),'bad');
+  }
+}
+
 /* ============ Clients CRUD ============ */
 async function loadClients(){
   const {data,error}=await sb.from('sb_businesses').select('*').order('client_id',{ascending:true});
@@ -397,10 +377,11 @@ function renderClients(){
     return (c.client_id||'').toLowerCase().includes(q)
         || (c.name||'').toLowerCase().includes(q)
         || (c.owner||'').toLowerCase().includes(q)
+        || (c.email||'').toLowerCase().includes(q)
         || (c.phone||'').toLowerCase().includes(q);
   });
   const el=$('#clientList');
-  if(!list.length){el.innerHTML='<div class="empty">No businesses yet.</div>';return;}
+  if(!list.length){el.innerHTML='<div class="empty">No users yet. They will appear here automatically once they create an account from the portal.</div>';return;}
   el.innerHTML=list.map(c=>{
     const claimed=!!c.owner_user_id;
     const statusPill=c.frozen
@@ -410,15 +391,22 @@ function renderClients(){
         : claimed
           ? '<span class="pill">● Active</span>'
           : '<span class="pill gray">Awaiting signup</span>';
-    const vapi = c.vapi_assistant_id ? '<span class="pill gray">vapi: '+esc(c.vapi_assistant_id.slice(0,10))+'…</span>' : '<span class="pill gray">no vapi yet</span>';
+    const vapi = c.vapi_assistant_id
+      ? '<span class="pill gray" title="'+esc(c.vapi_assistant_id)+'">🤖 own assistant</span>'
+      : '<button class="pill" style="cursor:pointer;border:1px solid rgba(46,230,195,.45);color:#8fead4;background:transparent" title="Create this user\'s own assistant" onclick="provisionClient(\''+c.id+'\', this)">⚡ Create assistant</button>';
+    const pcPill = c.passcode
+      ? '<span class="pill" title="User passcode — share only with the account owner" style="font-variant-numeric:tabular-nums;letter-spacing:1px">🔑 '+esc(c.passcode)+'</span>'
+      : '<span class="pill gray" title="No passcode yet">🔑 —</span>';
+    const subLine = esc(c.client_id||'')+(c.email?' · '+esc(c.email):'')+(c.phone?' · '+esc(c.phone):'');
     return '<div class="client-row" data-id="'+c.id+'">'
       +'<div class="client-head">'
         +'<div class="grow">'
-          +'<b>'+esc(c.name || '(unclaimed)')+'</b>'
-          +'<div class="sub">'+esc(c.client_id||'')+(c.phone?' · '+esc(c.phone):'')+'</div>'
+          +'<b>'+esc(c.name || c.owner || '(unclaimed)')+'</b>'
+          +'<div class="sub">'+subLine+'</div>'
         +'</div>'
         +statusPill
         +vapi
+        +pcPill
         +'<button class="icon-btn" title="Settings" onclick="toggleDetails(\''+c.id+'\', this)">⚙</button>'
         +'<button class="icon-btn warn '+(c.is_paused?'on':'')+'" title="'+(c.is_paused?'Reactivate account':'Pause account')+'" onclick="togglePause(\''+c.id+'\')">'+(c.is_paused?'▶':'⏸')+'</button>'
         +'<button class="icon-btn '+(c.frozen?'warn on':'')+'" title="'+(c.frozen?'Unfreeze':'Freeze')+'" onclick="toggleFreeze(\''+c.id+'\')">'+(c.frozen?'🔒':'🔓')+'</button>'
@@ -426,8 +414,10 @@ function renderClients(){
       +'</div>'
       +'<div class="details" id="det-'+c.id+'">'
         +'<div class="set-grid">'
-          +'<div class="set-field"><label>Business name</label><input data-f="name" value="'+esc(c.name||'')+'"></div>'
+          +'<div class="set-field"><label>Name / business</label><input data-f="name" value="'+esc(c.name||'')+'"></div>'
           +'<div class="set-field"><label>Owner</label><input data-f="owner" value="'+esc(c.owner||'')+'"></div>'
+          +'<div class="set-field"><label>Email</label><input value="'+esc(c.email||'')+'" readonly></div>'
+          +'<div class="set-field"><label>Passcode (5 digits)</label><input value="'+esc(c.passcode||'')+'" readonly style="font-variant-numeric:tabular-nums;letter-spacing:2px"><div class="field-hint">Read-only. Share with the account owner only if they forget it; they change it themselves via “Forgot passcode”.</div></div>'
           +'<div class="set-field"><label>Vapi phone number</label><input data-f="phone" value="'+esc(c.phone||'')+'"></div>'
           +'<div class="set-field"><label>Fallback number</label><input data-f="fallback_phone" value="'+esc(c.fallback_phone||'')+'"></div>'
           +'<div class="set-field"><label>Vapi assistant id</label><input data-f="vapi_assistant_id" value="'+esc(c.vapi_assistant_id||'')+'"></div>'
@@ -465,7 +455,7 @@ async function toggleFreeze(id){
 async function deleteClient(id){
   const c=CLIENTS.find(x=>x.id===id);if(!c) return;
   const label=c.name||c.client_id||'this client';
-  const ok=confirm('Delete "'+label+'"? This removes the business row and all its calls, bookings, orders, and pending changes. The owner\'s login itself stays intact (shared with other apps). This cannot be undone.');
+  const ok=confirm('Permanently delete "'+label+'"? This removes their business row and all their calls, bookings, orders, and pending changes. Their auth login itself is not removed. This cannot be undone.');
   if(!ok) return;
   // best-effort cascade: child rows first so RLS is satisfied
   const {error:e1}=await sb.from('sb_calls').delete().eq('business_id',id);
@@ -492,23 +482,12 @@ async function saveClient(id){
   renderClients();
   toast('✓ Saved','ok');
 }
-
 /* ============ Boot ============ */
 (async function(){
   if(!window.supabase){toast('Supabase library failed to load','bad');return;}
   sb=window.supabase.createClient(SUPA.url,SUPA.key,{auth:{persistSession:true,autoRefreshToken:true}});
-  sb.auth.onAuthStateChange((event)=>{
-    if(event==='PASSWORD_RECOVERY'){ showAuth('newpass'); }
-  });
-
-  const {data:{session}}=await sb.auth.getSession();
-  if(session){
-    // verify admin
-    const {data:row}=await sb.from('sb_admins').select('user_id').eq('user_id',session.user.id).maybeSingle();
-    if(row){ME=session.user;enterApp();return;}
-    await sb.auth.signOut();
-  }
-  var _g=document.getElementById('authWrap')||document.getElementById('gate'); if(_g) _g.style.display='flex';
+  // No admin login — open the panel directly.
+  enterApp();
 })();
 </script>
 </body>

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SwitchBoard — My Control Room</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--fd:'Space Grotesk',sans-serif;--fb:'DM Sans',sans-serif}
@@ -194,19 +195,133 @@ a{color:inherit}
  .c-top{padding:12px 16px}.c-views{padding:16px 16px 50px}
 }
 
-/* create-business modal */
-
-}
+/* ===== SwitchBoard auth (cloned from admin.html) ===== */
+#authWrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:radial-gradient(700px 480px at 82% 12%,rgba(46,230,195,.10),transparent 60%),
+             radial-gradient(700px 500px at 15% 88%,rgba(255,180,84,.06),transparent 60%),
+             radial-gradient(rgba(233,245,242,.045) 1px,transparent 1px) 0 0/26px 26px,#0a1214}
+.auth-card{width:100%;max-width:440px;background:linear-gradient(180deg,#0f2124,#0b181b);
+  border:1px solid rgba(233,245,242,.1);border-radius:20px;padding:34px;
+  box-shadow:0 30px 80px rgba(0,0,0,.55);animation:fadeUp .45s both}
+.a-brand{text-align:center;margin-bottom:24px}
+.a-brand h1{font-family:var(--fd,'Space Grotesk',sans-serif);font-size:26px;font-weight:800;letter-spacing:-.02em;margin:2px 0 4px}
+.a-brand h1 .sb-a{color:#2ee6c3}.a-brand h1 .sb-b{color:#8fead4}
+.a-brand p{color:#8fb0ac;font-size:13.5px;margin-top:4px}
+.a-pulse{position:relative;width:74px;height:74px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center}
+.a-pulse .dish{z-index:2;width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#0f2a2c,#123a37);
+  border:1px solid rgba(46,230,195,.4);display:grid;place-items:center;box-shadow:0 0 24px rgba(46,230,195,.22)}
+.a-pulse::before,.a-pulse::after{content:'';position:absolute;inset:0;border-radius:50%;
+  border:2px solid rgba(46,230,195,.55);animation:aPing 2.4s ease-out infinite}
+.a-pulse::after{animation-delay:1.2s}
+@keyframes aPing{0%{transform:scale(.55);opacity:1}100%{transform:scale(1.5);opacity:0}}
+.a-field{margin-bottom:14px}
+.a-field label{display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8fb0ac;margin-bottom:6px}
+.a-field input{width:100%;background:#0b181b;border:1px solid rgba(233,245,242,.1);color:#e9f5f2;
+  padding:11px 13px;border-radius:10px;font-family:inherit;font-size:14px;transition:.15s;outline:none}
+.a-field input:focus{border-color:rgba(46,230,195,.6);box-shadow:0 0 0 3px rgba(46,230,195,.15)}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:44px}
+.pw-toggle{position:absolute;right:8px;top:0;bottom:0;background:none;border:none;padding:0;margin:0;cursor:pointer;
+  color:#8fb0ac;display:flex;align-items:center;justify-content:center;width:26px;font-size:16px}
+.pw-toggle:hover{color:#e9f5f2}
+.a-err{color:#ff9c8f;font-size:13px;min-height:18px;margin:4px 0 8px}
+.a-ok{color:#8fead4;font-size:13px;margin:4px 0 8px}
+.a-btn{display:inline-flex;align-items:center;justify-content:center;width:100%;
+  background:linear-gradient(135deg,#12695a,#0e9579);color:#eafffa;font-family:var(--fd,'Space Grotesk',sans-serif);
+  font-weight:700;font-size:15px;padding:13px;border-radius:11px;border:none;cursor:pointer;transition:.2s;
+  box-shadow:0 8px 22px rgba(46,230,195,.18)}
+.a-btn:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(46,230,195,.28)}
+.a-btn[disabled]{opacity:.6;cursor:default;transform:none}
+.a-links{display:flex;justify-content:space-between;margin-top:16px;font-size:13.5px;flex-wrap:wrap;gap:8px}
+.a-links a{cursor:pointer;color:#8fead4;text-decoration:none;font-weight:600}
+.a-links a:hover{text-decoration:underline}
+.a-keep{display:flex;align-items:center;gap:9px;margin:2px 0 16px;color:#8fb0ac;font-size:13.5px;cursor:pointer;user-select:none}
+.a-keep input{width:16px;height:16px;accent-color:#2ee6c3;cursor:pointer}
+.a-note{color:#8fb0ac;font-size:13px;margin-bottom:16px;line-height:1.55}
+.gate-logo{width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,#0f2a2c,#123a37);border:1px solid rgba(46,230,195,.4);display:grid;place-items:center;box-shadow:0 0 24px rgba(46,230,195,.18)}
 </style>
 </head>
 <body>
 <div id="toasts"></div>
 
 <!-- gate -->
+<div id="authWrap">
+  <div class="auth-card">
+    <div class="a-brand">
+      <div class="a-pulse"><span class="dish"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2ee6c3" stroke-width="2" stroke-linecap="round"><path d="M12 2v6m0 4v10M5 8l7 4 7-4"/></svg></span></div>
+      <h1><span class="sb-a">Switch</span><span class="sb-b">Board</span></h1>
+      <p>Business Portal</p>
+    </div>
+
+    <!-- sign up (first-time users) -->
+    <div id="p-signup">
+      <p class="a-note">Create your account to manage your agent, calls, bookings and orders.</p>
+      <div class="a-field"><label>Your name</label><input id="suName" type="text" autocomplete="name" placeholder="Jane Doe"></div>
+      <div class="a-field"><label>Email</label><input id="suEmail" type="email" autocomplete="email" placeholder="you@business.com"></div>
+      <div class="a-field"><label>Confirm email</label><input id="suEmail2" type="email" autocomplete="email" placeholder="Re-enter your email"></div>
+      <div class="a-field"><label>Passcode (5 digits)</label>
+        <div class="pw-wrap"><input id="suPass" type="password" inputmode="numeric" maxlength="5" autocomplete="new-password" placeholder="•••••">
+          <button type="button" class="pw-toggle" data-target="suPass" aria-label="Show passcode">show</button></div>
+      </div>
+      <div class="a-field"><label>Confirm passcode</label>
+        <div class="pw-wrap"><input id="suPass2" type="password" inputmode="numeric" maxlength="5" autocomplete="new-password" placeholder="•••••">
+          <button type="button" class="pw-toggle" data-target="suPass2" aria-label="Show passcode">show</button></div>
+      </div>
+      <label class="a-keep"><input type="checkbox" id="suKeep" checked> Keep me signed in</label>
+      <div class="a-err" id="suMsg"></div>
+      <button class="a-btn" id="suSubmit" onclick="handleSignup(event)">Create account →</button>
+      <div class="a-links">
+        <a onclick="showAuth('signin')">Already have an account? Sign in</a>
+        <a href="admin.html">Admin panel</a>
+      </div>
+    </div>
+
+    <!-- sign in (returning users) -->
+    <div id="p-signin" class="hidden">
+      <p class="a-note">Sign in to manage your agent, calls, bookings and orders.</p>
+      <div class="a-field"><label>Email</label><input id="liEmail" type="email" autocomplete="username" placeholder="you@business.com"></div>
+      <div class="a-field"><label>Passcode (5 digits)</label>
+        <div class="pw-wrap"><input id="liPassword" type="password" inputmode="numeric" maxlength="5" autocomplete="current-password" placeholder="•••••">
+          <button type="button" class="pw-toggle" data-target="liPassword" aria-label="Show passcode">show</button></div>
+      </div>
+      <label class="a-keep"><input type="checkbox" id="liKeep" checked> Keep me signed in</label>
+      <div class="a-err" id="liMsg"></div>
+      <button class="a-btn" id="liSubmit" onclick="handleLogin(event)">Sign in →</button>
+      <div class="a-links">
+        <a onclick="showAuth('signup')">Create account</a>
+        <a onclick="showAuth('forgot')">Forgot passcode?</a>
+      </div>
+    </div>
+
+    <!-- forgot passcode -->
+    <div id="p-forgot" class="hidden">
+      <p class="a-note">Enter the email on your account and we'll send you a link to set a new passcode.</p>
+      <div class="a-field"><label>Email</label><input id="fpEmail" type="email" placeholder="you@business.com" autocomplete="email"></div>
+      <div class="a-err" id="fpErr"></div>
+      <div class="a-ok hidden" id="fpOk"></div>
+      <button class="a-btn" id="fpBtn" onclick="doForgot()">Send reset link</button>
+      <div class="a-links"><a onclick="showAuth('signin')">← Back to sign in</a></div>
+    </div>
+
+    <!-- new passcode (from emailed link) -->
+    <div id="p-newpass" class="hidden">
+      <p class="a-note">Enter a new 5-digit passcode for your account.</p>
+      <div class="a-field"><label>New passcode (5 digits)</label>
+        <div class="pw-wrap"><input id="npPass" type="password" inputmode="numeric" maxlength="5" placeholder="•••••" autocomplete="new-password">
+          <button type="button" class="pw-toggle" data-target="npPass" aria-label="Show passcode">show</button></div>
+      </div>
+      <div class="a-field"><label>Confirm new passcode</label>
+        <div class="pw-wrap"><input id="npPass2" type="password" inputmode="numeric" maxlength="5" placeholder="•••••" autocomplete="new-password">
+          <button type="button" class="pw-toggle" data-target="npPass2" aria-label="Show passcode">show</button></div>
+      </div>
+      <div class="a-err" id="npErr"></div>
+      <button class="a-btn" id="npBtn" onclick="doNewPass()">Update passcode</button>
+    </div>
+  </div>
 </div>
 
 <!-- app -->
-<section id="app">
+<section id="app" class="hidden">
   <aside class="c-side">
     <div class="c-brand"><div class="gate-logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2ee6c3" stroke-width="2" stroke-linecap="round"><path d="M12 2v6m0 4v10M5 8l7 4 7-4"/></svg></div><b>SwitchBoard</b></div>
     <nav class="cnav">
@@ -216,7 +331,9 @@ a{color:inherit}
       <button data-view="orders">🛍 Orders</button>
       <button data-view="schedule">🕐 Schedule</button>
     </nav>
-
+    <div class="c-side-foot" style="margin-top:auto;">
+      <button onclick="handleSignOut()" style="background:transparent;border:1px solid rgba(233,245,242,.12);color:#bcd6d1;padding:9px 12px;border-radius:9px;font-size:13px;width:100%;">Sign out</button>
+    </div>
   </aside>
   <main class="c-main">
     <header class="c-top">
@@ -331,6 +448,226 @@ const KEY='sb_client_demo_v1', CONN='sb_conn';
 let S, callFilter='all', switching=false;
 let live={calls:[],bookings:[],orders:[],pending:[]};
 const DB={connected:false,sb:null,biz:null,list:[]};
+
+/* ============ Supabase auth (cloned from admin.html) ============ */
+const SUPA={
+  url:'https://suiilufpgjkbiawetttd.supabase.co',
+  key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1aWlsdWZwZ2prYmlhd2V0dHRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyMDUwNzIsImV4cCI6MjA5ODc4MTA3Mn0.tNISiQiyVFZxbP72TMxIy1IWiNkvHrjLqCEKjwh8MKQ'
+};
+let sb=null, ME=null;
+
+/* "Keep me signed in": when on, the session lives in localStorage (survives
+   browser restart); when off, it lives in sessionStorage (cleared on close). */
+function sbKeepPref(){try{return localStorage.getItem('sb_keep')!=='0';}catch(e){return true;}}
+function setSbKeep(on){try{localStorage.setItem('sb_keep',on?'1':'0');}catch(e){}}
+const sbStorage={
+  getItem(k){try{var v=(sbKeepPref()?localStorage:sessionStorage).getItem(k);if(v==null)v=(sbKeepPref()?sessionStorage:localStorage).getItem(k);return v;}catch(e){return null;}},
+  setItem(k,v){try{if(sbKeepPref()){localStorage.setItem(k,v);sessionStorage.removeItem(k);}else{sessionStorage.setItem(k,v);localStorage.removeItem(k);}}catch(e){}},
+  removeItem(k){try{localStorage.removeItem(k);sessionStorage.removeItem(k);}catch(e){}}
+};
+
+function setMsg(id,text,cls){const el=document.getElementById(id);if(!el)return;el.textContent=text||'';el.className='a-err '+(cls||'');}
+
+/* 5-digit passcode helpers.
+   Supabase Auth requires 6+ char passwords, so we derive the stored auth
+   password from the user's 5-digit passcode. The raw passcode is also saved
+   to sb_businesses.passcode so an admin can look it up if the user forgets. */
+const isCode=(v)=>/^\d{5}$/.test(v);
+const pwFromCode=(c)=>'SBpc-'+c;
+function makeClientId(){
+  const chars='abcdef0123456789';let s='';
+  for(let i=0;i<8;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+  return 'CLI-'+s;
+}
+async function provisionAssistant(businessId){
+  try{
+    const r=await fetch(SUPA.url+'/functions/v1/provision-assistant',{
+      method:'POST',
+      headers:{'apikey':SUPA.key,'Authorization':'Bearer '+SUPA.key,'Content-Type':'application/json'},
+      body:JSON.stringify({business_id:businessId})
+    });
+    return await r.json();
+  }catch(e){return {error:(e&&e.message)||'network error'};}
+}
+
+async function handleSignup(ev){
+  if(ev&&ev.preventDefault) ev.preventDefault();
+  if(!sb){toast('Supabase not ready','bad');return false;}
+  const name=$('#suName').value.trim();
+  const email=$('#suEmail').value.trim().toLowerCase();
+  const email2=$('#suEmail2').value.trim().toLowerCase();
+  const code=$('#suPass').value.trim();
+  const code2=$('#suPass2').value.trim();
+  setMsg('suMsg','','');
+  if(!name){setMsg('suMsg','Please enter your name.','err');return false;}
+  if(!email){setMsg('suMsg','Please enter your email.','err');return false;}
+  if(email!==email2){setMsg('suMsg','The two emails don’t match.','err');return false;}
+  if(!isCode(code)){setMsg('suMsg','Passcode must be exactly 5 digits.','err');return false;}
+  if(code!==code2){setMsg('suMsg','The two passcodes don’t match.','err');return false;}
+  const btn=$('#suSubmit'); btn.disabled=true; setMsg('suMsg','Creating your account…','');
+  setSbKeep($('#suKeep')?$('#suKeep').checked:true);
+  try{
+    const {data,error}=await sb.auth.signUp({email,password:pwFromCode(code),options:{data:{name}}});
+    if(error) throw error;
+    const uid=data.user?data.user.id:null;
+    const row={name, owner:name, email, passcode:code, is_paused:false, frozen:false, vapi_enabled:false, client_id:makeClientId()};
+    if(uid) row.owner_user_id=uid;
+    const {data:biz,error:bErr}=await sb.from('sb_businesses').insert(row).select().single();
+    if(bErr) throw bErr;
+    // Give this user their OWN Vapi assistant automatically (no manual setup).
+    setMsg('suMsg','Setting up your voice assistant…','');
+    const prov=await provisionAssistant(biz.id);
+    if(prov&&prov.assistantId){biz.vapi_assistant_id=prov.assistantId;}
+    if(data.session){
+      ME=data.user; DB.sb=sb; DB.biz=biz; DB.connected=true;
+      enterApp(); toast('Welcome — your account is ready','ok');
+    }else{
+      showAuth('signin');
+      setMsg('liMsg','Account created. Sign in with your email and passcode.','ok');
+    }
+  }catch(e){
+    setMsg('suMsg', (e&&e.message)||'Could not create account','err');
+  }finally{ btn.disabled=false; }
+  return false;
+}
+
+async function handleLogin(ev){
+  if(ev&&ev.preventDefault) ev.preventDefault();
+  if(!sb){toast('Supabase not ready','bad');return false;}
+  const email=$('#liEmail').value.trim().toLowerCase(), code=$('#liPassword').value.trim();
+  if(!isCode(code)){setMsg('liMsg','Passcode must be exactly 5 digits.','err');return false;}
+  setSbKeep($('#liKeep')?$('#liKeep').checked:true);
+  setMsg('liMsg','Signing in…','');$('#liSubmit').disabled=true;
+  try{
+    const {data,error}=await sb.auth.signInWithPassword({email,password:pwFromCode(code)});
+    if(error) throw error;
+    let {data:bizRow,error:bErr}=await sb.from('sb_businesses').select('*').eq('owner_user_id',data.user.id).maybeSingle();
+    if(bErr) throw bErr;
+    if(!bizRow){
+      // claim a row that was created before this account signed in
+      const {data:byEmail}=await sb.from('sb_businesses').select('*').eq('email',email).maybeSingle();
+      if(byEmail){
+        const {data:claimed}=await sb.from('sb_businesses').update({owner_user_id:data.user.id}).eq('id',byEmail.id).select().single();
+        bizRow=claimed||byEmail;
+      }
+    }
+    if(!bizRow){
+      await sb.auth.signOut();
+      throw new Error('No business profile found for this account.');
+    }
+    if(bizRow.frozen){
+      await sb.auth.signOut();
+      throw new Error('This account is no longer active. Please contact support.');
+    }
+    ME=data.user;
+    DB.sb=sb; DB.biz=bizRow; DB.connected=true;
+    enterApp();
+  }catch(e){
+    setMsg('liMsg', e.message||'Sign in failed','err');
+    $('#liSubmit').disabled=false;
+  }
+  return false;
+}
+async function handleSignOut(){
+  try{await sb.auth.signOut();}catch(e){}
+  ME=null; DB.connected=false; DB.sb=null; DB.biz=null;
+  document.getElementById('app').classList.add('hidden');
+  var _g=document.getElementById('authWrap'); if(_g) _g.style.display='flex';
+  showAuth('signin');
+  $('#liSubmit').disabled=false;
+}
+function enterApp(){
+  var _g=document.getElementById('authWrap'); if(_g) _g.style.display='none';
+  document.getElementById('app').classList.remove('hidden');
+  syncBiz();
+  renderAll();
+  if(DB.connected)pullLive();
+}
+
+/* live sync — pulls this business's calls/bookings/orders/pending from Supabase.
+   Vapi posts end-of-call reports to the webhook, the webhook writes these tables,
+   and the portal polls them every 15s (see ticker below). */
+async function pullLive(){
+ if(!DB.connected||!DB.biz)return;
+ const bid=DB.biz.id;
+ try{
+  const [c,b,o,p]=await Promise.all([
+   DB.sb.from('sb_calls').select('*').eq('business_id',bid).order('created_at',{ascending:false}).limit(100),
+   DB.sb.from('sb_bookings').select('*').eq('business_id',bid).order('created_at',{ascending:false}).limit(100),
+   DB.sb.from('sb_orders').select('*').eq('business_id',bid).order('created_at',{ascending:false}).limit(100),
+   DB.sb.from('sb_pending_changes').select('*').eq('business_id',bid).order('created_at',{ascending:false}).limit(50)
+  ]);
+  if(c.data)live.calls=c.data.map(mapCall);
+  if(b.data)live.bookings=b.data.map(r=>({id:r.id,name:r.caller_name||'Unknown',svc:r.service||'Booking',
+    when:[r.date,r.time].filter(Boolean).join(' · ')||'TBD',note:r.note||'None',status:r.status||'Confirmed'}));
+  if(o.data)live.orders=o.data.map(r=>({id:r.order_ref||('#'+String(r.id).slice(0,5)),name:r.caller_name||'Unknown',
+    lines:(r.items||[]).map(i=>[i.name,i.price||0]),total:+r.total||0,pickup:r.pickup||'ASAP',status:r.status||'Preparing'}));
+  if(p.data)live.pending=p.data.map(r=>({id:r.id,desc:r.description,pushed:!!r.pushed}));
+  renderAll();
+ }catch(e){console.warn('pullLive failed',e);}
+}
+
+function showAuth(name){
+  ['signup','signin','forgot','newpass'].forEach(p=>{
+    var el=document.getElementById('p-'+p); if(el) el.classList.add('hidden');
+  });
+  var target=document.getElementById('p-'+name); if(target) target.classList.remove('hidden');
+  ['suMsg','liMsg','fpErr','npErr'].forEach(id=>{var el=document.getElementById(id);if(el)el.textContent='';});
+  var fpOk=document.getElementById('fpOk'); if(fpOk){fpOk.textContent='';fpOk.classList.add('hidden');}
+}
+document.addEventListener('click',function(e){
+  var t=e.target.closest('.pw-toggle'); if(!t) return;
+  var input=document.getElementById(t.getAttribute('data-target')); if(!input) return;
+  var showing=input.type==='text';
+  input.type=showing?'password':'text';
+  t.textContent=showing?'show':'hide';
+  t.setAttribute('aria-label',showing?'Show password':'Hide password');
+});
+async function doForgot(){
+  if(!sb){toast('Supabase not ready','bad');return;}
+  var email=$('#fpEmail').value.trim().toLowerCase();
+  var errEl=$('#fpErr'), okEl=$('#fpOk'), btn=$('#fpBtn');
+  errEl.textContent=''; okEl.textContent=''; okEl.classList.add('hidden');
+  if(!email){errEl.textContent='Enter your email.';return;}
+  btn.disabled=true; btn.textContent='Sending…';
+  try{
+    await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});
+    okEl.textContent='Check your inbox — if that email is registered, a link to set a new passcode is on its way.';
+    okEl.classList.remove('hidden');
+  }catch(e){ errEl.textContent=e.message||'Could not send the reset link.'; }
+  finally{ btn.disabled=false; btn.textContent='Send reset link'; }
+}
+async function doNewPass(){
+  if(!sb){toast('Supabase not ready','bad');return;}
+  var code=$('#npPass').value.trim(), code2=$('#npPass2').value.trim();
+  var errEl=$('#npErr'), btn=$('#npBtn');
+  errEl.textContent='';
+  if(!isCode(code)){errEl.textContent='Passcode must be exactly 5 digits.';return;}
+  if(code!==code2){errEl.textContent='The two passcodes don’t match.';return;}
+  btn.disabled=true; btn.textContent='Updating…';
+  try{
+    var r=await sb.auth.updateUser({password:pwFromCode(code)});
+    if(r.error) throw r.error;
+    var u=(await sb.auth.getUser()).data.user;
+    if(u){
+      // keep the admin-visible passcode in sync with the new one
+      await sb.from('sb_businesses').update({passcode:code}).eq('owner_user_id',u.id);
+      var chk=await sb.from('sb_businesses').select('*').eq('owner_user_id',u.id).maybeSingle();
+      if(chk.error||!chk.data){
+        await sb.auth.signOut();
+        showAuth('signin');
+        setMsg('liMsg','Passcode updated, but no business profile is linked to this account.','err');
+        btn.disabled=false; btn.textContent='Update passcode'; return;
+      }
+      ME=u; DB.sb=sb; DB.biz=chk.data; DB.connected=true;
+      enterApp(); toast('Passcode updated','ok');
+    }else{
+      showAuth('signin');
+      setMsg('liMsg','Passcode updated. Please sign in.','ok');
+    }
+  }catch(e){ errEl.textContent=e.message||'Could not update passcode.'; }
+  finally{ btn.disabled=false; btn.textContent='Update passcode'; }
+}
 
 function toast(msg,type){type=type||'ok';const t=document.createElement('div');t.className='toast t-'+type;
  t.innerHTML='<span class="td"></span><span>'+msg+'</span>';$('#toasts').append(t);
@@ -549,7 +886,7 @@ async function pushSchedule(){
  if(DB.connected){
   const {error}=await DB.sb.from('sb_pending_changes').insert({business_id:DB.biz.id,biz_name:DB.biz.name,description:desc});
   if(error){toast('Insert failed: '+error.message,'bad');return;}
-  toast('Schedule sent — admin will mark it pushed to agent','ok');/*live disabled*/return;}
+  toast('Schedule sent — admin will mark it pushed to agent','ok');pullLive();return;}
  if(!S.pending)S.pending=[];
  S.pending.unshift({id:uid(),client:S.bizName,desc,pushed:false});save();renderSchedule();
  toast('Schedule sent — admin will mark it pushed to agent ↗','ok');}
@@ -562,7 +899,7 @@ async function makeCall(){
    sentiment:'Neutral',summary:'Test entry from SwitchBoard to verify the write path.',
    structured:{intent:'enquiry',sentiment:'Neutral',topic:'Pipeline test'},handled:true});
   if(error){toast('Insert failed: '+error.message,'bad');return;}
-  toast('Test call written ✓','ok');/*live disabled*/return;}
+  toast('Test call written ✓','ok');pullLive();return;}
  const now=Date.now(),name=pick(NAMES),phone=genPhone();
  if(!S.mainOn){S.calls.unshift({id:uid(),intent:'missed',name,phone,at:now,dur:0,handled:false,sent:'Neutral'});
   save();renderControl();renderCalls();toast('✕ Missed call from '+name+' — Agent is off','bad');return;}
@@ -584,7 +921,7 @@ async function makeCall(){
 /* tickers */
 setInterval(()=>{const n=new Date();$('#clock').textContent=fmtTime(n)+':'+String(n.getSeconds()).padStart(2,'0');},1000);
 setInterval(()=>{
- if(DB.connected){/*live disabled*/return;}
+ if(DB.connected){pullLive();return;}
  if($('#app').classList.contains('hidden')||!S.mainOn)return;
  if(Math.random()<.5)makeCall();},15000);
 setInterval(()=>{
@@ -594,7 +931,24 @@ setInterval(()=>{
  if(S.mode==='schedule'&&!DB.connected&&!$('#app').classList.contains('hidden'))applyScheduleNow(false);},5000);
 
 /* init */
-loadLocal();renderConnBar();renderAll();
+loadLocal();renderConnBar();
+['suKeep','liKeep'].forEach(id=>{var el=document.getElementById(id);if(el)el.checked=sbKeepPref();});
+
+(async function(){
+  if(!window.supabase){toast('Supabase library failed to load','bad');var _g=document.getElementById('authWrap');if(_g)_g.style.display='flex';return;}
+  sb=window.supabase.createClient(SUPA.url,SUPA.key,{auth:{persistSession:true,autoRefreshToken:true,storage:sbStorage}});
+  sb.auth.onAuthStateChange((event)=>{
+    if(event==='PASSWORD_RECOVERY'){ showAuth('newpass'); }
+  });
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){
+    const {data:row}=await sb.from('sb_businesses').select('*').eq('owner_user_id',session.user.id).maybeSingle();
+    if(row&&!row.frozen){ME=session.user;DB.sb=sb;DB.biz=row;DB.connected=true;enterApp();return;}
+    await sb.auth.signOut();
+  }
+  var _g=document.getElementById('authWrap'); if(_g) _g.style.display='flex';
+  showAuth('signup');
+})();
 </script>
 </body>
 </html>

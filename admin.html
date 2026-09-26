@@ -104,11 +104,52 @@ a{color:#2ee6c3;font-weight:600;text-decoration:none}
 .searchbar{display:flex;gap:8px;margin-bottom:14px}
 .searchbar input{flex:1;background:#0d181b;border:1px solid rgba(233,245,242,.1);color:#e9f5f2;padding:10px 12px;border-radius:9px;outline:none}
 .searchbar input:focus{border-color:rgba(46,230,195,.55)}
+
+/* Prompt button colour + Vapi link */
+.icon-btn.prompt-btn{border-color:rgba(143,234,212,.35);color:#8fead4}
+.icon-btn.prompt-btn:hover{border-color:rgba(46,230,195,.7);background:rgba(46,230,195,.08)}
+.icon-btn.vapi-link{border-color:rgba(255,207,143,.4);color:#ffcf8f;text-decoration:none;font-weight:700}
+.icon-btn.vapi-link:hover{background:rgba(255,180,84,.08);border-color:rgba(255,180,84,.7)}
+
+/* Prompt modal */
+#promptModal{position:fixed;inset:0;background:rgba(6,12,14,.78);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:998;padding:20px}
+#promptModal.on{display:flex}
+.pm-card{width:min(760px,100%);max-height:90vh;background:linear-gradient(160deg,#101f23,#0d181b);border:1px solid rgba(233,245,242,.1);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:14px;animation:fadeUp .3s both}
+.pm-card h2{font-family:var(--fd);font-size:19px;margin:0}
+.pm-card .pm-sub{color:#8fb0ac;font-size:12.5px;line-height:1.5}
+.pm-card .pm-meta{display:flex;gap:8px;flex-wrap:wrap;font-size:11.5px;color:#8fb0ac}
+.pm-card .pm-meta code{background:#0d181b;border:1px solid rgba(233,245,242,.1);padding:2px 8px;border-radius:6px;color:#8fead4}
+.pm-card textarea{flex:1;min-height:340px;background:#0d181b;border:1px solid rgba(233,245,242,.12);color:#e9f5f2;padding:14px 16px;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.6;resize:vertical;outline:none}
+.pm-card textarea:focus{border-color:rgba(46,230,195,.55);box-shadow:0 0 0 3px rgba(46,230,195,.12)}
+.pm-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.pm-actions .left{margin-right:auto;font-size:12px;color:#8fb0ac;align-self:center}
 </style>
 </head>
 <body>
 
 <div id="toasts"></div>
+
+<!-- AI prompt modal -->
+<div id="promptModal" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
+  <div class="pm-card">
+    <div>
+      <h2 id="pmTitle">AI system prompt</h2>
+      <div class="pm-sub">This is the system prompt for the assistant. Pasting it here keeps a source-of-truth copy; use the ↗ Vapi link to edit it inside Vapi as well.</div>
+    </div>
+    <div class="pm-meta">
+      <span>Client:</span> <code id="pmClient">—</code>
+      <span>Business:</span> <code id="pmBiz">—</code>
+      <span id="pmVapiWrap" style="display:none">Vapi: <code id="pmVapi">—</code></span>
+    </div>
+    <textarea id="pmText" placeholder="e.g. You are Dana, the friendly booking assistant for Copper Pot Kitchen. Greet callers by name if possible…"></textarea>
+    <div class="pm-actions">
+      <span class="left" id="pmStatus"></span>
+      <a id="pmVapiLink" class="btn sm ghost" target="_blank" rel="noopener" href="#" style="display:none">Open in Vapi ↗</a>
+      <button class="btn sm ghost" onclick="closePromptModal()">Cancel</button>
+      <button class="btn sm" id="pmSave" onclick="savePromptFromModal()">💾 Save prompt</button>
+    </div>
+  </div>
+</div>
 
 <!-- gate -->
 <section id="gate">
@@ -330,6 +371,10 @@ function renderClients(){
         +'</div>'
         +statusPill
         +vapi
+        +'<button class="icon-btn prompt-btn" title="AI system prompt" onclick="openPromptModal(\''+c.id+'\')">🧠</button>'
+        +(c.vapi_assistant_id
+           ? '<a class="icon-btn vapi-link" title="Open assistant in Vapi" target="_blank" rel="noopener" href="https://dashboard.vapi.ai/assistants/'+esc(c.vapi_assistant_id)+'">↗</a>'
+           : '')
         +'<button class="icon-btn" title="Settings" onclick="toggleDetails(\''+c.id+'\', this)">⚙</button>'
         +'<button class="icon-btn warn '+(c.is_paused?'on':'')+'" title="'+(c.is_paused?'Reactivate account':'Pause account')+'" onclick="togglePause(\''+c.id+'\')">'+(c.is_paused?'▶':'⏸')+'</button>'
         +'<button class="icon-btn '+(c.frozen?'warn on':'')+'" title="'+(c.frozen?'Unfreeze':'Freeze')+'" onclick="toggleFreeze(\''+c.id+'\')">'+(c.frozen?'🔒':'🔓')+'</button>'
@@ -404,6 +449,48 @@ async function saveClient(id){
   renderClients();
   toast('✓ Saved','ok');
 }
+/* ============ AI prompt modal ============ */
+let PROMPT_ID=null;
+function openPromptModal(id){
+  const c=CLIENTS.find(x=>x.id===id);if(!c) return;
+  PROMPT_ID=id;
+  $('#pmClient').textContent=c.client_id||'—';
+  $('#pmBiz').textContent=c.name||'(unclaimed)';
+  const vlink=$('#pmVapiLink'), vwrap=$('#pmVapiWrap');
+  if(c.vapi_assistant_id){
+    vwrap.style.display='';
+    $('#pmVapi').textContent=c.vapi_assistant_id;
+    vlink.style.display='';
+    vlink.href='https://dashboard.vapi.ai/assistants/'+encodeURIComponent(c.vapi_assistant_id);
+  }else{
+    vwrap.style.display='none';
+    vlink.style.display='none';
+  }
+  $('#pmText').value=c.ai_prompt||'';
+  $('#pmStatus').textContent='';
+  $('#pmSave').disabled=false;
+  $('#promptModal').classList.add('on');
+  setTimeout(()=>$('#pmText').focus(),50);
+}
+function closePromptModal(){
+  $('#promptModal').classList.remove('on');
+  PROMPT_ID=null;
+}
+async function savePromptFromModal(){
+  if(!PROMPT_ID) return;
+  const text=$('#pmText').value;
+  $('#pmSave').disabled=true;$('#pmStatus').textContent='Saving…';
+  const {data,error}=await sb.from('sb_businesses').update({ai_prompt:text||null}).eq('id',PROMPT_ID).select().single();
+  if(error){$('#pmStatus').textContent='Failed: '+error.message;$('#pmSave').disabled=false;return;}
+  const idx=CLIENTS.findIndex(x=>x.id===PROMPT_ID);if(idx>=0) CLIENTS[idx]=data;
+  renderClients();
+  $('#pmStatus').textContent='✓ Saved';
+  toast('AI prompt saved','ok');
+  setTimeout(closePromptModal, 500);
+}
+// Esc to close
+document.addEventListener('keydown',(e)=>{if(e.key==='Escape' && document.getElementById('promptModal').classList.contains('on')) closePromptModal();});
+
 async function copyClientLink(cid,btn){
   if(!cid){toast('This client has no client_id','warn');return;}
   const link=PORTAL_BASE+'?portal='+cid;

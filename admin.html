@@ -105,69 +105,108 @@ a{color:#2ee6c3;font-weight:600;text-decoration:none}
 .searchbar input{flex:1;background:#0d181b;border:1px solid rgba(233,245,242,.1);color:#e9f5f2;padding:10px 12px;border-radius:9px;outline:none}
 .searchbar input:focus{border-color:rgba(46,230,195,.55)}
 
-/* Prompt button colour + Vapi link */
-.icon-btn.prompt-btn{border-color:rgba(143,234,212,.35);color:#8fead4}
-.icon-btn.prompt-btn:hover{border-color:rgba(46,230,195,.7);background:rgba(46,230,195,.08)}
-.icon-btn.vapi-link{border-color:rgba(255,207,143,.4);color:#ffcf8f;text-decoration:none;font-weight:700}
-.icon-btn.vapi-link:hover{background:rgba(255,180,84,.08);border-color:rgba(255,180,84,.7)}
-
-/* Prompt modal */
-#promptModal{position:fixed;inset:0;background:rgba(6,12,14,.78);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:998;padding:20px}
-#promptModal.on{display:flex}
-.pm-card{width:min(760px,100%);max-height:90vh;background:linear-gradient(160deg,#101f23,#0d181b);border:1px solid rgba(233,245,242,.1);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:14px;animation:fadeUp .3s both}
-.pm-card h2{font-family:var(--fd);font-size:19px;margin:0}
-.pm-card .pm-sub{color:#8fb0ac;font-size:12.5px;line-height:1.5}
-.pm-card .pm-meta{display:flex;gap:8px;flex-wrap:wrap;font-size:11.5px;color:#8fb0ac}
-.pm-card .pm-meta code{background:#0d181b;border:1px solid rgba(233,245,242,.1);padding:2px 8px;border-radius:6px;color:#8fead4}
-.pm-card textarea{flex:1;min-height:340px;background:#0d181b;border:1px solid rgba(233,245,242,.12);color:#e9f5f2;padding:14px 16px;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.6;resize:vertical;outline:none}
-.pm-card textarea:focus{border-color:rgba(46,230,195,.55);box-shadow:0 0 0 3px rgba(46,230,195,.12)}
-.pm-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
-.pm-actions .left{margin-right:auto;font-size:12px;color:#8fb0ac;align-self:center}
+/* ===== SwitchBoard auth (JobAgent-style) ===== */
+#authWrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:radial-gradient(700px 480px at 82% 12%,rgba(46,230,195,.10),transparent 60%),
+             radial-gradient(700px 500px at 15% 88%,rgba(255,180,84,.06),transparent 60%),
+             radial-gradient(rgba(233,245,242,.045) 1px,transparent 1px) 0 0/26px 26px,#0a1214}
+.auth-card{width:100%;max-width:440px;background:linear-gradient(180deg,#0f2124,#0b181b);
+  border:1px solid rgba(233,245,242,.1);border-radius:20px;padding:34px;
+  box-shadow:0 30px 80px rgba(0,0,0,.55);animation:fadeUp .45s both}
+.a-brand{text-align:center;margin-bottom:24px}
+.a-brand h1{font-family:var(--fd,'Space Grotesk',sans-serif);font-size:26px;font-weight:800;letter-spacing:-.02em;margin:2px 0 4px}
+.a-brand h1 .sb-a{color:#2ee6c3}.a-brand h1 .sb-b{color:#8fead4}
+.a-brand p{color:#8fb0ac;font-size:13.5px;margin-top:4px}
+.a-pulse{position:relative;width:74px;height:74px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center}
+.a-pulse .dish{z-index:2;width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#0f2a2c,#123a37);
+  border:1px solid rgba(46,230,195,.4);display:grid;place-items:center;box-shadow:0 0 24px rgba(46,230,195,.22)}
+.a-pulse::before,.a-pulse::after{content:'';position:absolute;inset:0;border-radius:50%;
+  border:2px solid rgba(46,230,195,.55);animation:aPing 2.4s ease-out infinite}
+.a-pulse::after{animation-delay:1.2s}
+@keyframes aPing{0%{transform:scale(.55);opacity:1}100%{transform:scale(1.5);opacity:0}}
+.a-field{margin-bottom:14px}
+.a-field label{display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8fb0ac;margin-bottom:6px}
+.a-field input{width:100%;background:#0b181b;border:1px solid rgba(233,245,242,.1);color:#e9f5f2;
+  padding:11px 13px;border-radius:10px;font-family:inherit;font-size:14px;transition:.15s;outline:none}
+.a-field input:focus{border-color:rgba(46,230,195,.6);box-shadow:0 0 0 3px rgba(46,230,195,.15)}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:44px}
+.pw-toggle{position:absolute;right:8px;top:0;bottom:0;background:none;border:none;padding:0;margin:0;cursor:pointer;
+  color:#8fb0ac;display:flex;align-items:center;justify-content:center;width:26px;font-size:16px}
+.pw-toggle:hover{color:#e9f5f2}
+.a-err{color:#ff9c8f;font-size:13px;min-height:18px;margin:4px 0 8px}
+.a-ok{color:#8fead4;font-size:13px;margin:4px 0 8px}
+.a-remember{display:flex;align-items:center;gap:8px;font-size:13px;color:#8fb0ac;cursor:pointer;margin:2px 0 14px}
+.a-remember input{width:auto;accent-color:#2ee6c3;cursor:pointer}
+.a-btn{display:inline-flex;align-items:center;justify-content:center;width:100%;
+  background:linear-gradient(135deg,#12695a,#0e9579);color:#eafffa;font-family:var(--fd,'Space Grotesk',sans-serif);
+  font-weight:700;font-size:15px;padding:13px;border-radius:11px;border:none;cursor:pointer;transition:.2s;
+  box-shadow:0 8px 22px rgba(46,230,195,.18)}
+.a-btn:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(46,230,195,.28)}
+.a-btn[disabled]{opacity:.6;cursor:default;transform:none}
+.a-links{display:flex;justify-content:space-between;margin-top:16px;font-size:13.5px;flex-wrap:wrap;gap:8px}
+.a-links a{cursor:pointer;color:#8fead4;text-decoration:none;font-weight:600}
+.a-links a:hover{text-decoration:underline}
+.a-alt{margin-top:14px;font-size:12.5px;color:#8fb0ac;text-align:center}
+.a-note{color:#8fb0ac;font-size:13px;margin-bottom:16px;line-height:1.55}
 </style>
 </head>
 <body>
 
 <div id="toasts"></div>
 
-<!-- AI prompt modal -->
-<div id="promptModal" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
-  <div class="pm-card">
-    <div>
-      <h2 id="pmTitle">AI system prompt</h2>
-      <div class="pm-sub">This is the system prompt for the assistant. Pasting it here keeps a source-of-truth copy; use the ↗ Vapi link to edit it inside Vapi as well.</div>
+<!-- gate (JobAgent-style admin sign-in) -->
+<div id="authWrap">
+  <div class="auth-card">
+    <div class="a-brand">
+      <div class="a-pulse"><span class="dish"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2ee6c3" stroke-width="2" stroke-linecap="round"><path d="M12 2v6m0 4v10M5 8l7 4 7-4"/></svg></span></div>
+      <h1><span class="sb-a">Switch</span><span class="sb-b">Board</span></h1>
+      <p>Admin control panel</p>
     </div>
-    <div class="pm-meta">
-      <span>Client:</span> <code id="pmClient">—</code>
-      <span>Business:</span> <code id="pmBiz">—</code>
-      <span id="pmVapiWrap" style="display:none">Vapi: <code id="pmVapi">—</code></span>
+
+    <!-- sign in -->
+    <div id="p-signin">
+      <p class="a-note">Sign in with your admin account.</p>
+      <div class="a-field"><label>Email</label><input id="liEmail" type="email" autocomplete="username" placeholder="you@switchboard.app"></div>
+      <div class="a-field"><label>Password</label>
+        <div class="pw-wrap"><input id="liPassword" type="password" autocomplete="current-password" placeholder="••••••••">
+          <button type="button" class="pw-toggle" data-target="liPassword" aria-label="Show password">show</button></div>
+      </div>
+      <div class="a-err" id="liMsg"></div>
+      <button class="a-btn" id="liSubmit" onclick="handleLogin(event)">Sign in →</button>
+      <div class="a-links">
+        <a onclick="showAuth('forgot')">Forgot password?</a>
+        <a href="index.html">← Back to SwitchBoard</a>
+      </div>
     </div>
-    <textarea id="pmText" placeholder="e.g. You are Dana, the friendly booking assistant for Copper Pot Kitchen. Greet callers by name if possible…"></textarea>
-    <div class="pm-actions">
-      <span class="left" id="pmStatus"></span>
-      <a id="pmVapiLink" class="btn sm ghost" target="_blank" rel="noopener" href="#" style="display:none">Open in Vapi ↗</a>
-      <button class="btn sm ghost" onclick="closePromptModal()">Cancel</button>
-      <button class="btn sm" id="pmSave" onclick="savePromptFromModal()">💾 Save prompt</button>
+
+    <!-- forgot -->
+    <div id="p-forgot" class="hidden">
+      <p class="a-note">Enter the email on your admin account and we'll send you a link to reset your password.</p>
+      <div class="a-field"><label>Email</label><input id="fpEmail" type="email" placeholder="you@switchboard.app" autocomplete="email"></div>
+      <div class="a-err" id="fpErr"></div>
+      <div class="a-ok hidden" id="fpOk"></div>
+      <button class="a-btn" id="fpBtn" onclick="doForgot()">Send reset link</button>
+      <div class="a-links"><a onclick="showAuth('signin')">← Back to sign in</a></div>
+    </div>
+
+    <!-- new password (from emailed link) -->
+    <div id="p-newpass" class="hidden">
+      <p class="a-note">Enter a new password for your admin account.</p>
+      <div class="a-field"><label>New password</label>
+        <div class="pw-wrap"><input id="npPass" type="password" placeholder="Min. 6 characters" autocomplete="new-password">
+          <button type="button" class="pw-toggle" data-target="npPass" aria-label="Show password">show</button></div>
+      </div>
+      <div class="a-field"><label>Confirm new password</label>
+        <div class="pw-wrap"><input id="npPass2" type="password" autocomplete="new-password">
+          <button type="button" class="pw-toggle" data-target="npPass2" aria-label="Show password">show</button></div>
+      </div>
+      <div class="a-err" id="npErr"></div>
+      <button class="a-btn" id="npBtn" onclick="doNewPass()">Update password</button>
     </div>
   </div>
 </div>
 
-<!-- gate -->
-<section id="gate">
-  <div class="gate-card">
-    <div class="gate-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2ee6c3" stroke-width="2" stroke-linecap="round"><path d="M12 2v6m0 4v10M5 8l7 4 7-4"/></svg></div>
-    <h1>SwitchBoard Admin</h1>
-    <p>Sign in with your admin account.</p>
-    <form id="loginForm" onsubmit="return handleLogin(event)">
-      <label>Email</label>
-      <input id="liEmail" type="email" autocomplete="username" placeholder="you@switchboard.app" required>
-      <label>Password</label>
-      <input id="liPassword" type="password" autocomplete="current-password" placeholder="••••••••" required>
-      <div id="liMsg" class="auth-msg"></div>
-      <button class="enter-btn" type="submit" id="liSubmit">Sign in →</button>
-    </form>
-    <p class="gate-alt"><a href="index.html">← Back to SwitchBoard</a></p>
-  </div>
-</section>
 
 <!-- app -->
 <section id="app" class="hidden">
@@ -258,7 +297,7 @@ function setMsg(id,text,cls){const el=document.getElementById(id);if(!el)return;
 
 /* ============ Auth ============ */
 async function handleLogin(ev){
-  ev.preventDefault();
+  if(ev&&ev.preventDefault) ev.preventDefault();
   if(!sb){toast('Supabase not ready','bad');return false;}
   const email=$('#liEmail').value.trim(), password=$('#liPassword').value;
   setMsg('liMsg','Signing in…','');$('#liSubmit').disabled=true;
@@ -283,17 +322,78 @@ async function handleSignOut(){
   try{await sb.auth.signOut();}catch(e){}
   ME=null;
   document.getElementById('app').classList.add('hidden');
-  document.getElementById('gate').style.display='grid';
+  var _g=document.getElementById('authWrap')||document.getElementById('gate'); if(_g) _g.style.display='flex';
   setMsg('liMsg','Signed out.','ok');
   $('#liSubmit').disabled=false;
 }
 function enterApp(){
-  document.getElementById('gate').style.display='none';
+  var _g=document.getElementById('authWrap')||document.getElementById('gate'); if(_g) _g.style.display='none';
   document.getElementById('app').classList.remove('hidden');
   $('#whoami').innerHTML='Signed in as<br><b style="color:#eafffa">'+esc(ME.email)+'</b>';
   $('#adminInfo').innerHTML='<b>'+esc(ME.email)+'</b><br><span style="color:#8fb0ac;font-size:12.5px">user id: '+esc(ME.id)+'</span>';
   $('#baseUrl').textContent=PORTAL_BASE+'?portal=CLI-…';
   loadClients();
+}
+
+
+/* ============ Auth panel switching + password extras ============ */
+function showAuth(name){
+  ['signin','forgot','newpass'].forEach(p=>{
+    var el=document.getElementById('p-'+p); if(el) el.classList.add('hidden');
+  });
+  var target=document.getElementById('p-'+name); if(target) target.classList.remove('hidden');
+  ['liMsg','fpErr','npErr'].forEach(id=>{var el=document.getElementById(id);if(el)el.textContent='';});
+  var fpOk=document.getElementById('fpOk'); if(fpOk){fpOk.textContent='';fpOk.classList.add('hidden');}
+}
+document.addEventListener('click',function(e){
+  var t=e.target.closest('.pw-toggle'); if(!t) return;
+  var input=document.getElementById(t.getAttribute('data-target')); if(!input) return;
+  var showing=input.type==='text';
+  input.type=showing?'password':'text';
+  t.textContent=showing?'show':'hide';
+  t.setAttribute('aria-label',showing?'Show password':'Hide password');
+});
+async function doForgot(){
+  if(!sb){toast('Supabase not ready','bad');return;}
+  var email=$('#fpEmail').value.trim();
+  var errEl=$('#fpErr'), okEl=$('#fpOk'), btn=$('#fpBtn');
+  errEl.textContent=''; okEl.textContent=''; okEl.classList.add('hidden');
+  if(!email){errEl.textContent='Enter your email.';return;}
+  btn.disabled=true; btn.textContent='Sending\u2026';
+  try{
+    await sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});
+    okEl.textContent='Check your inbox \u2014 if that email is registered, a reset link is on its way.';
+    okEl.classList.remove('hidden');
+  }catch(e){ errEl.textContent=e.message||'Could not send the reset link.'; }
+  finally{ btn.disabled=false; btn.textContent='Send reset link'; }
+}
+async function doNewPass(){
+  if(!sb){toast('Supabase not ready','bad');return;}
+  var pass=$('#npPass').value, pass2=$('#npPass2').value;
+  var errEl=$('#npErr'), btn=$('#npBtn');
+  errEl.textContent='';
+  if(pass.length<6){errEl.textContent='Password needs to be at least 6 characters.';return;}
+  if(pass!==pass2){errEl.textContent='Passwords don\u2019t match.';return;}
+  btn.disabled=true; btn.textContent='Updating\u2026';
+  try{
+    var r=await sb.auth.updateUser({password:pass});
+    if(r.error) throw r.error;
+    var u=(await sb.auth.getUser()).data.user;
+    if(u){
+      var chk=await sb.from('sb_admins').select('user_id').eq('user_id',u.id).maybeSingle();
+      if(chk.error||!chk.data){
+        await sb.auth.signOut();
+        showAuth('signin');
+        setMsg('liMsg','Password updated, but this account is not set up as an admin.','err');
+        btn.disabled=false; btn.textContent='Update password'; return;
+      }
+      ME=u; enterApp(); toast('Password updated','ok');
+    }else{
+      showAuth('signin');
+      setMsg('liMsg','Password updated. Please sign in.','ok');
+    }
+  }catch(e){ errEl.textContent=e.message||'Could not update password.'; }
+  finally{ btn.disabled=false; btn.textContent='Update password'; }
 }
 
 /* ============ View switching ============ */
@@ -371,10 +471,6 @@ function renderClients(){
         +'</div>'
         +statusPill
         +vapi
-        +'<button class="icon-btn prompt-btn" title="AI system prompt" onclick="openPromptModal(\''+c.id+'\')">🧠</button>'
-        +(c.vapi_assistant_id
-           ? '<a class="icon-btn vapi-link" title="Open assistant in Vapi" target="_blank" rel="noopener" href="https://dashboard.vapi.ai/assistants/'+esc(c.vapi_assistant_id)+'">↗</a>'
-           : '')
         +'<button class="icon-btn" title="Settings" onclick="toggleDetails(\''+c.id+'\', this)">⚙</button>'
         +'<button class="icon-btn warn '+(c.is_paused?'on':'')+'" title="'+(c.is_paused?'Reactivate account':'Pause account')+'" onclick="togglePause(\''+c.id+'\')">'+(c.is_paused?'▶':'⏸')+'</button>'
         +'<button class="icon-btn '+(c.frozen?'warn on':'')+'" title="'+(c.frozen?'Unfreeze':'Freeze')+'" onclick="toggleFreeze(\''+c.id+'\')">'+(c.frozen?'🔒':'🔓')+'</button>'
@@ -449,48 +545,6 @@ async function saveClient(id){
   renderClients();
   toast('✓ Saved','ok');
 }
-/* ============ AI prompt modal ============ */
-let PROMPT_ID=null;
-function openPromptModal(id){
-  const c=CLIENTS.find(x=>x.id===id);if(!c) return;
-  PROMPT_ID=id;
-  $('#pmClient').textContent=c.client_id||'—';
-  $('#pmBiz').textContent=c.name||'(unclaimed)';
-  const vlink=$('#pmVapiLink'), vwrap=$('#pmVapiWrap');
-  if(c.vapi_assistant_id){
-    vwrap.style.display='';
-    $('#pmVapi').textContent=c.vapi_assistant_id;
-    vlink.style.display='';
-    vlink.href='https://dashboard.vapi.ai/assistants/'+encodeURIComponent(c.vapi_assistant_id);
-  }else{
-    vwrap.style.display='none';
-    vlink.style.display='none';
-  }
-  $('#pmText').value=c.ai_prompt||'';
-  $('#pmStatus').textContent='';
-  $('#pmSave').disabled=false;
-  $('#promptModal').classList.add('on');
-  setTimeout(()=>$('#pmText').focus(),50);
-}
-function closePromptModal(){
-  $('#promptModal').classList.remove('on');
-  PROMPT_ID=null;
-}
-async function savePromptFromModal(){
-  if(!PROMPT_ID) return;
-  const text=$('#pmText').value;
-  $('#pmSave').disabled=true;$('#pmStatus').textContent='Saving…';
-  const {data,error}=await sb.from('sb_businesses').update({ai_prompt:text||null}).eq('id',PROMPT_ID).select().single();
-  if(error){$('#pmStatus').textContent='Failed: '+error.message;$('#pmSave').disabled=false;return;}
-  const idx=CLIENTS.findIndex(x=>x.id===PROMPT_ID);if(idx>=0) CLIENTS[idx]=data;
-  renderClients();
-  $('#pmStatus').textContent='✓ Saved';
-  toast('AI prompt saved','ok');
-  setTimeout(closePromptModal, 500);
-}
-// Esc to close
-document.addEventListener('keydown',(e)=>{if(e.key==='Escape' && document.getElementById('promptModal').classList.contains('on')) closePromptModal();});
-
 async function copyClientLink(cid,btn){
   if(!cid){toast('This client has no client_id','warn');return;}
   const link=PORTAL_BASE+'?portal='+cid;
@@ -503,6 +557,10 @@ async function copyClientLink(cid,btn){
 (async function(){
   if(!window.supabase){toast('Supabase library failed to load','bad');return;}
   sb=window.supabase.createClient(SUPA.url,SUPA.key,{auth:{persistSession:true,autoRefreshToken:true}});
+  sb.auth.onAuthStateChange((event)=>{
+    if(event==='PASSWORD_RECOVERY'){ showAuth('newpass'); }
+  });
+
   const {data:{session}}=await sb.auth.getSession();
   if(session){
     // verify admin
@@ -510,7 +568,7 @@ async function copyClientLink(cid,btn){
     if(row){ME=session.user;enterApp();return;}
     await sb.auth.signOut();
   }
-  document.getElementById('gate').style.display='grid';
+  var _g=document.getElementById('authWrap')||document.getElementById('gate'); if(_g) _g.style.display='flex';
 })();
 </script>
 </body>

@@ -205,29 +205,22 @@ a{color:inherit}
  .c-top{padding:12px 16px}.c-views{padding:16px 16px 50px}
 }
 
-/* auth (added for multi-tenant) */
-.auth-tabs{display:flex;gap:6px;margin-bottom:16px;background:#0d181b;border:1px solid rgba(233,245,242,.08);border-radius:11px;padding:4px}
-.auth-tab{flex:1;padding:9px 10px;border-radius:8px;font-family:var(--fd);font-weight:600;font-size:13px;color:#8fb0ac}
-.auth-tab.act{background:linear-gradient(135deg,#12695a,#0e9579);color:#eafffa;box-shadow:0 6px 16px rgba(46,230,195,.18)}
-#authForm{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
-#authForm input{background:#0d181b;border:1px solid rgba(233,245,242,.1);color:#e9f5f2;padding:12px 14px;border-radius:10px;outline:none;transition:.15s}
-#authForm input:focus{border-color:rgba(46,230,195,.55);box-shadow:0 0 0 3px rgba(46,230,195,.12)}
-#authMsg{font-size:12.5px;min-height:16px;text-align:left;margin:-4px 0 4px}
-#authMsg.err{color:#ff9c8f}#authMsg.ok{color:#8fead4}
-/* create-business modal */
-#bizModal{position:fixed;inset:0;background:rgba(6,12,14,.72);backdrop-filter:blur(6px);display:none;place-items:center;z-index:998}
-#bizModal.on{display:grid}
-.biz-card{width:min(460px,92vw);background:linear-gradient(160deg,#101f23,#0d181b);border:1px solid rgba(233,245,242,.1);border-radius:16px;padding:26px;animation:fadeUp .35s both}
-.biz-card h2{font-family:var(--fd);font-size:19px;margin-bottom:6px}
-.biz-card p{font-size:13px;color:#8fb0ac;margin-bottom:16px}
-.biz-card .set-field{margin-bottom:10px}
-.biz-card label{font-size:12px;color:#8fb0ac;display:block;margin-bottom:4px}
-.biz-card input{width:100%;background:#0d181b;border:1px solid rgba(233,245,242,.1);color:#e9f5f2;padding:11px 12px;border-radius:9px;outline:none}
-.biz-card input:focus{border-color:rgba(46,230,195,.55)}
-.biz-card .row{display:flex;gap:8px;margin-top:14px}
-.biz-card .row button{flex:1;padding:12px;border-radius:10px;font-family:var(--fd);font-weight:700}
-.biz-primary{background:linear-gradient(135deg,#12695a,#0e9579);color:#eafffa}
-.biz-ghost{background:transparent;border:1px solid rgba(233,245,242,.15);color:#bcd6d1}
+
+/* auth v2 (login-only gate matching businessdeskzone) */
+.gate-card{text-align:left}
+.gate-card h1{font-family:var(--fd);font-size:22px;margin-bottom:6px;text-align:center}
+.gate-card > .gate-card > p, .gate-card p{color:#8fb0ac;font-size:13.5px;margin-bottom:18px;text-align:center;line-height:1.55}
+.gate-card label{display:block;font-size:12px;color:#8fb0ac;margin:10px 0 4px}
+.gate-card input[type=text],.gate-card input[type=email],.gate-card input[type=password]{width:100%;background:#0d181b;border:1px solid rgba(233,245,242,.1);color:#e9f5f2;padding:11px 13px;border-radius:10px;outline:none;transition:.15s}
+.gate-card input:focus{border-color:rgba(46,230,195,.55);box-shadow:0 0 0 3px rgba(46,230,195,.12)}
+.gate-card .enter-btn{margin-top:16px}
+.gate-alt{font-size:12.5px;color:#8fb0ac;text-align:center;margin-top:14px}
+.gate-alt .lnk,.scr .lnk{color:#2ee6c3;font-weight:600;text-decoration:none}
+.auth-msg{font-size:12.5px;min-height:16px;margin-top:8px;color:#ff9c8f}
+.auth-msg.ok{color:#8fead4}
+.auth-ok{background:rgba(46,230,195,.12);color:#8fead4;border-radius:8px;padding:11px 13px;font-size:12.5px;margin-bottom:14px;line-height:1.5}
+.auth-err{background:rgba(255,122,107,.12);color:#ff9c8f;border-radius:8px;padding:11px 13px;font-size:12.5px;margin-bottom:14px;line-height:1.5}
+.scr{animation:fadeUp .3s both}
 </style>
 </head>
 <body>
@@ -237,35 +230,83 @@ a{color:inherit}
 <section id="gate">
   <div class="gate-card">
     <div class="gate-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2ee6c3" stroke-width="2" stroke-linecap="round"><path d="M12 2v6m0 4v10M5 8l7 4 7-4"/></svg></div>
-    <h1>SwitchBoard</h1>
-    <p id="gateSub">Sign in to your control room.</p>
-    <div class="auth-tabs">
-      <button type="button" class="auth-tab act" data-mode="signin" onclick="switchAuthMode('signin')">Sign in</button>
-      <button type="button" class="auth-tab" data-mode="signup" onclick="switchAuthMode('signup')">Sign up</button>
+
+    <!-- INVALID LINK -->
+    <div id="scr-invalid" class="scr" style="display:none">
+      <div style="font-size:34px;margin-bottom:6px">🔒</div>
+      <h1 id="invalidTitle">This link isn't valid</h1>
+      <p id="invalidMsg">Check the link you were given, or contact the person who sent it to you.</p>
+      <p style="margin-top:16px"><a href="#" class="lnk" onclick="event.preventDefault();goToLogin()">← Go to sign in</a></p>
     </div>
-    <form id="authForm" onsubmit="return handleAuth(event)">
-      <input id="authEmail" type="email" placeholder="Email" autocomplete="email" required>
-      <input id="authPassword" type="password" placeholder="Password (min 6 characters)" autocomplete="current-password" required minlength="6">
-      <div id="authMsg"></div>
-      <button class="enter-btn" type="submit" id="authSubmit">Sign in →</button>
-    </form>
-    <div class="gate-alt">Agency? <a href="switchboard-admin.html">Open the Admin panel →</a></div>
+
+    <!-- FIRST-TIME SIGNUP (opened from admin-issued ?portal=CLI-...) -->
+    <div id="scr-signup" class="scr" style="display:none">
+      <h1>Set up your SwitchBoard</h1>
+      <p id="signupIntro">You've been invited to activate this control room. Create your login below.</p>
+      <form id="signupForm" novalidate onsubmit="return handleSignup(event)">
+        <label>Business name</label>
+        <input id="suBiz" type="text" placeholder="e.g. Copper Pot Kitchen" required>
+        <label>Your name</label>
+        <input id="suOwner" type="text" placeholder="Your full name" required>
+        <label>Email</label>
+        <input id="suEmail" type="email" autocomplete="email" placeholder="you@business.com" required>
+        <label>Password</label>
+        <input id="suPassword" type="password" autocomplete="new-password" placeholder="At least 6 characters" minlength="6" required>
+        <div id="suMsg" class="auth-msg"></div>
+        <button class="enter-btn" type="submit" id="suSubmit">Create account →</button>
+      </form>
+      <p class="gate-alt">Already have an account? <a href="#" class="lnk" onclick="event.preventDefault();goToLogin()">Sign in</a></p>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="scr-login" class="scr" style="display:none">
+      <h1>SwitchBoard</h1>
+      <p>Sign in to your control room.</p>
+      <form id="loginForm" novalidate onsubmit="return handleLogin(event)">
+        <label>Email</label>
+        <input id="liEmail" type="email" autocomplete="username" placeholder="you@business.com" required>
+        <label>Password</label>
+        <input id="liPassword" type="password" autocomplete="current-password" placeholder="••••••••" required>
+        <div id="liMsg" class="auth-msg"></div>
+        <button class="enter-btn" type="submit" id="liSubmit">Sign in →</button>
+      </form>
+      <p class="gate-alt"><a href="#" class="lnk" onclick="event.preventDefault();showScr('forgot')">Forgot password?</a></p>
+      <p class="gate-alt">Agency? <a href="admin.html">Open the Admin panel →</a></p>
+    </div>
+
+    <!-- FORGOT PASSWORD -->
+    <div id="scr-forgot" class="scr" style="display:none">
+      <h1>Reset your password</h1>
+      <p>Enter your email and we'll send a reset link.</p>
+      <div id="fpSuccess" class="auth-ok" style="display:none">Check your inbox — if that email is registered, a reset link is on its way.</div>
+      <form id="forgotForm" novalidate onsubmit="return handleForgot(event)">
+        <label>Email</label>
+        <input id="fpEmail" type="email" autocomplete="username" placeholder="you@business.com" required>
+        <div id="fpMsg" class="auth-msg"></div>
+        <button class="enter-btn" type="submit" id="fpSubmit">Send reset link</button>
+      </form>
+      <p class="gate-alt"><a href="#" class="lnk" onclick="event.preventDefault();goToLogin()">← Back to sign in</a></p>
+    </div>
+
+    <!-- RESET PASSWORD (arrived via emailed link with #type=recovery) -->
+    <div id="scr-reset" class="scr" style="display:none">
+      <h1>Set a new password</h1>
+      <p>Choose a new password for your account.</p>
+      <div id="rsInvalid" class="auth-err" style="display:none">This reset link is invalid or has expired. Request a new one.</div>
+      <div id="rsSuccess" class="auth-ok" style="display:none">Password updated. Signing you in…</div>
+      <form id="resetForm" novalidate onsubmit="return handleReset(event)">
+        <label>New password</label>
+        <input id="rsPassword" type="password" autocomplete="new-password" minlength="6" required placeholder="At least 6 characters">
+        <label>Confirm new password</label>
+        <input id="rsConfirm" type="password" autocomplete="new-password" minlength="6" required placeholder="Re-enter password">
+        <div id="rsMsg" class="auth-msg"></div>
+        <button class="enter-btn" type="submit" id="rsSubmit">Update password</button>
+      </form>
+      <p class="gate-alt"><a href="#" class="lnk" onclick="event.preventDefault();goToLogin()">← Back to sign in</a></p>
+    </div>
+
   </div>
 </section>
-<!-- create-business modal -->
-<div id="bizModal">
-  <div class="biz-card">
-    <h2>Set up your business</h2>
-    <p>You're signed in — add your first business to start.</p>
-    <div class="set-field"><label>Business name</label><input id="bizName" placeholder="e.g. Copper Pot Kitchen"></div>
-    <div class="set-field"><label>Your name (shown as owner)</label><input id="bizOwner" placeholder="Your name"></div>
-    <div class="set-field"><label>Your Vapi phone number</label><input id="bizPhone" placeholder="+1 555 555 0100"></div>
-    <div class="set-field"><label>Fallback number (rings your phone when switch is OFF)</label><input id="bizFallback" placeholder="+1 555 555 0101"></div>
-    <div class="row">
-      <button type="button" class="biz-ghost" onclick="signOut()">Sign out</button>
-      <button type="button" class="biz-primary" onclick="createBusiness()">Create</button>
-    </div>
-  </div>
 </div>
 
 <!-- app -->
@@ -471,11 +512,10 @@ const PENDS=()=>DB.connected?live.pending:S.pending;
 /* connect */
 function renderConnBar(){
  const el=$('#connBar');
- if(DB.connected && DB.list && DB.list.length){
+ if(DB.connected && DB.biz){
   el.innerHTML='<div class="cb live"><span class="conn-chip conn-live">● LIVE</span>'+
-   '<span style="font-size:12.5px;color:#8fb0ac">Acting as:</span>'+
-   '<select onchange="switchBiz(this.value)">'+DB.list.map(b=>'<option value="'+b.id+'"'+(b.id===DB.biz.id?' selected':'')+'>'+b.name+'</option>').join('')+'</select>'+
-   '<button class="cb-btn" onclick="openBizModal()">+ New business</button>'+
+   '<span style="font-size:12.5px;color:#8fb0ac">Signed in as:</span>'+
+   '<b style="font-size:13px">'+(DB.biz.name||'—')+'</b>'+
    '<span class="cb-hint" style="width:auto;flex:1">New calls sync every 15 s.</span></div>';
  }else{
   el.innerHTML='<div class="cb"><b style="color:#ffcf8f;font-size:13px">⚠ Sample data</b>'+
@@ -487,65 +527,160 @@ function renderConnBar(){
   ?'Voice agent<br>connected to <b style="color:#8fb0ac">'+(DB.biz.phone||'—')+'</b>'
   :'Voice agent<br>not connected yet';
 }
-/* auth-based data load */
-let AUTH_MODE='signin';
-function switchAuthMode(m){AUTH_MODE=m;
- document.querySelectorAll('.auth-tab').forEach(b=>b.classList.toggle('act',b.dataset.mode===m));
- $('#authSubmit').textContent=(m==='signup'?'Create account →':'Sign in →');
- $('#authPassword').setAttribute('autocomplete',m==='signup'?'new-password':'current-password');
- $('#authMsg').textContent='';$('#authMsg').className='';}
-function authMsg(text,cls){$('#authMsg').textContent=text||'';$('#authMsg').className=cls||'';}
-async function handleAuth(ev){
+/* auth v2: login only + first-time signup via ?portal=CLI-xxxxxxxx + forgot/reset */
+const $scr = (name) => document.getElementById('scr-'+name);
+function showScr(name){
+ ['invalid','signup','login','forgot','reset'].forEach(n => {
+  const el=$scr(n); if(el) el.style.display = (n===name ? 'block' : 'none');
+ });
+}
+function goToLogin(){history.replaceState(null,'',location.pathname);showScr('login');}
+function setMsg(id,text,cls){const el=document.getElementById(id);if(!el)return;el.textContent=text||'';el.className='auth-msg '+(cls||'');}
+function readPortalId(){
+ const params=new URLSearchParams(location.search);
+ const p=(params.get('portal')||'').trim();
+ return /^CLI-[a-z0-9-]{6,}$/i.test(p) ? p : null;
+}
+
+/* ---- LOGIN ---- */
+async function handleLogin(ev){
  ev.preventDefault();
- const email=$('#authEmail').value.trim(),password=$('#authPassword').value;
  if(!DB.sb){toast('Supabase client not ready','bad');return false;}
- $('#authSubmit').disabled=true;authMsg('Working…','');
+ const email=$('#liEmail').value.trim(), password=$('#liPassword').value;
+ setMsg('liMsg','Signing in…','');$('#liSubmit').disabled=true;
  try{
-  if(AUTH_MODE==='signup'){
-   const {data,error}=await DB.sb.auth.signUp({email,password});
-   if(error)throw error;
-   if(!data.session){authMsg('Check your inbox to confirm your email, then sign in.','ok');
-    $('#authSubmit').disabled=false;switchAuthMode('signin');return false;}
-  }else{
-   const {error}=await DB.sb.auth.signInWithPassword({email,password});
-   if(error)throw error;
+  const {data,error}=await DB.sb.auth.signInWithPassword({email,password});
+  if(error) throw error;
+  const {data:row,error:rowErr}=await DB.sb.from('sb_businesses')
+    .select('*').eq('owner_user_id',data.user.id).limit(1).maybeSingle();
+  if(rowErr) throw rowErr;
+  if(!row){
+   await DB.sb.auth.signOut();
+   throw new Error('No business profile found for this account. Ask your admin for a fresh signup link.');
   }
-  await onSignedIn();
- }catch(e){authMsg(e.message||'Auth failed','err');$('#authSubmit').disabled=false;}
+  if(row.frozen){
+   await DB.sb.auth.signOut();
+   throw new Error('This account is no longer active. Please contact support.');
+  }
+  if(row.is_paused){
+   await DB.sb.auth.signOut();
+   throw new Error('This account has been paused. Please contact support.');
+  }
+  await afterAuthLoadedBiz(row);
+ }catch(e){
+  setMsg('liMsg', e.message||'Sign in failed', 'err');
+  $('#liSubmit').disabled=false;
+ }
  return false;
 }
-async function onSignedIn(){
- authMsg('','');$('#authSubmit').disabled=false;
- DB.connected=true;
- const {data,error}=await DB.sb.from('sb_businesses').select('*').order('name');
- if(error){toast('Load failed: '+error.message,'bad');return;}
- DB.list=data||[];
- const saved=JSON.parse(localStorage.getItem(CONN)||'{}');
- DB.biz=DB.list.find(b=>b.id===saved.bizId)||DB.list[0]||null;
- if(!DB.biz){enterApp();openBizModal();renderConnBar();return;}
- localStorage.setItem(CONN,JSON.stringify({bizId:DB.biz.id}));
- syncBiz();enterApp();renderConnBar();toast('✓ Signed in','ok');await refreshLive();
+
+/* ---- FIRST-TIME SIGNUP (opened from ?portal=CLI-xxxxxxxx) ---- */
+async function handleSignup(ev){
+ ev.preventDefault();
+ if(!DB.sb){toast('Supabase client not ready','bad');return false;}
+ const cid=readPortalId();
+ if(!cid){setMsg('suMsg','Missing portal id in the link.','err');return false;}
+ const biz=$('#suBiz').value.trim(), owner=$('#suOwner').value.trim(),
+       email=$('#suEmail').value.trim(), password=$('#suPassword').value;
+ setMsg('suMsg','Creating your account…','');$('#suSubmit').disabled=true;
+ try{
+  // 1) Verify link is still valid (row exists, not claimed, not frozen)
+  const {data:row,error:rowErr}=await DB.sb.from('sb_businesses')
+    .select('id,client_id,owner_user_id,frozen').eq('client_id',cid).maybeSingle();
+  if(rowErr) throw rowErr;
+  if(!row) throw new Error("This signup link isn't valid.");
+  if(row.frozen) throw new Error('This signup link has been frozen. Contact your admin.');
+  if(row.owner_user_id) throw new Error('This signup link has already been used.');
+  // 2) Create the auth user
+  const {data:s,error:sErr}=await DB.sb.auth.signUp({email,password});
+  if(sErr) throw sErr;
+  const user=s.user;
+  // 3) If email confirmation is required, s.session will be null. We can still
+  //    claim the row on the first successful sign-in below.
+  const doClaim = async () => {
+   const {error:upErr}=await DB.sb.from('sb_businesses').update({
+    owner_user_id: (await DB.sb.auth.getUser()).data.user.id,
+    name: biz, owner: owner, vapi_enabled: false
+   }).eq('id', row.id).eq('client_id', cid);
+   if(upErr) throw upErr;
+  };
+  if(s.session){
+   await doClaim();
+   const {data:full}=await DB.sb.from('sb_businesses').select('*').eq('id',row.id).single();
+   await afterAuthLoadedBiz(full);
+  }else{
+   // needs email confirmation: sign them in with the password we just set, if allowed
+   const {data:si,error:siErr}=await DB.sb.auth.signInWithPassword({email,password});
+   if(siErr){
+    setMsg('suMsg','Check your inbox to confirm your email, then come back to sign in.','ok');
+    $('#suSubmit').disabled=false;return false;
+   }
+   await doClaim();
+   const {data:full}=await DB.sb.from('sb_businesses').select('*').eq('id',row.id).single();
+   await afterAuthLoadedBiz(full);
+  }
+ }catch(e){
+  setMsg('suMsg', e.message||'Signup failed', 'err');
+  $('#suSubmit').disabled=false;
+ }
+ return false;
 }
-function openBizModal(){$('#bizModal').classList.add('on');setTimeout(()=>$('#bizName').focus(),50);}
-function closeBizModal(){$('#bizModal').classList.remove('on');}
-async function createBusiness(){
- const name=$('#bizName').value.trim(),owner=$('#bizOwner').value.trim(),
-       phone=$('#bizPhone').value.trim(),fallback=$('#bizFallback').value.trim();
- if(!name){toast('Business name is required','warn');return;}
- const u=(await DB.sb.auth.getUser()).data.user;
- const {data,error}=await DB.sb.from('sb_businesses').insert({
-  name,owner:owner||u.email,phone,fallback_phone:fallback,vapi_enabled:false,owner_user_id:u.id
- }).select().single();
- if(error){toast('Create failed: '+error.message,'bad');return;}
- DB.list.push(data);DB.biz=data;
- localStorage.setItem(CONN,JSON.stringify({bizId:DB.biz.id}));
- syncBiz();closeBizModal();renderConnBar();renderAll();toast('✓ Business created','ok');
+
+/* ---- FORGOT PASSWORD ---- */
+async function handleForgot(ev){
+ ev.preventDefault();
+ if(!DB.sb){toast('Supabase client not ready','bad');return false;}
+ const email=$('#fpEmail').value.trim();
+ setMsg('fpMsg','Sending…','');$('#fpSubmit').disabled=true;
+ try{
+  await DB.sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+  $('#fpSuccess').style.display='block';
+  $('#forgotForm').style.display='none';
+ }catch(e){
+  setMsg('fpMsg', e.message||'Something went wrong. Please try again.','err');
+  $('#fpSubmit').disabled=false;
+ }
+ return false;
 }
+
+/* ---- RESET PASSWORD ---- */
+async function handleReset(ev){
+ ev.preventDefault();
+ if(!DB.sb){toast('Supabase client not ready','bad');return false;}
+ const p1=$('#rsPassword').value, p2=$('#rsConfirm').value;
+ if(p1!==p2){setMsg('rsMsg','Passwords do not match.','err');return false;}
+ setMsg('rsMsg','Updating…','');$('#rsSubmit').disabled=true;
+ try{
+  const {error}=await DB.sb.auth.updateUser({password:p1});
+  if(error) throw error;
+  $('#rsSuccess').style.display='block';
+  // load business and enter app automatically
+  const {data:{user}}=await DB.sb.auth.getUser();
+  const {data:row}=await DB.sb.from('sb_businesses').select('*').eq('owner_user_id',user.id).maybeSingle();
+  if(row) await afterAuthLoadedBiz(row);
+  else {history.replaceState(null,'',location.pathname);showScr('login');}
+ }catch(e){
+  setMsg('rsMsg', e.message||'Reset failed','err');
+  $('#rsSubmit').disabled=false;
+ }
+ return false;
+}
+
+/* ---- After auth: load business + everything else ---- */
+async function afterAuthLoadedBiz(bizRow){
+ DB.connected=true;DB.list=[bizRow];DB.biz=bizRow;
+ syncBiz();enterApp();renderConnBar();toast('✓ Signed in','ok');
+ await refreshLive();
+}
+
+/* ---- Sign out (used by top-bar button and by session events) ---- */
 async function dbDisconnect(){
  try{if(DB.sb)await DB.sb.auth.signOut();}catch(e){}
- localStorage.removeItem(CONN);
  DB.connected=false;DB.list=[];DB.biz=null;
- renderConnBar();signOut();toast('Signed out','warn');
+ renderConnBar();signOut();
+ history.replaceState(null,'',location.pathname);
+ showScr('login');
+ toast('Signed out','warn');
 }
 function syncBiz(){if(!DB.biz)return;
  S.bizName=DB.biz.name;S.bizOwner=DB.biz.owner||'Owner';S.bizPhone=DB.biz.phone||'+1 (—) ———';
@@ -789,16 +924,42 @@ setInterval(()=>{
 /* init */
 loadLocal();renderConnBar();
 (async function(){
- // Live project (anon key is public/client-side by design; RLS enforces per-user isolation)
  const SUPA={url:'https://suiilufpgjkbiawetttd.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1aWlsdWZwZ2prYmlhd2V0dHRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyMDUwNzIsImV4cCI6MjA5ODc4MTA3Mn0.tNISiQiyVFZxbP72TMxIy1IWiNkvHrjLqCEKjwh8MKQ'};
  if(!window.supabase){toast('Supabase library failed to load','bad');return;}
- DB.sb=window.supabase.createClient(SUPA.url,SUPA.key,{auth:{persistSession:true,autoRefreshToken:true}});
- // resume existing session if present
- const {data:{session}}=await DB.sb.auth.getSession();
- if(session){await onSignedIn();}
- // react to future sign-in / sign-out events
+ DB.sb=window.supabase.createClient(SUPA.url,SUPA.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+
+ // Decide which screen to show first
+ const isRecovery = location.hash.includes('type=recovery');
+ const portalId   = readPortalId();
+
+ if(isRecovery){showScr('reset');}
+ else if(portalId){
+  // Validate the invite link before showing the signup form
+  const {data:row,error}=await DB.sb.from('sb_businesses')
+    .select('client_id,owner_user_id,frozen').eq('client_id',portalId).maybeSingle();
+  if(error||!row||row.owner_user_id||row.frozen){
+   const t=document.getElementById('invalidTitle'), m=document.getElementById('invalidMsg');
+   if(row&&row.frozen){t.textContent='This link is frozen';m.textContent='The admin has disabled this invite. Ask them for a new one.';}
+   else if(row&&row.owner_user_id){t.textContent='This link was already used';m.textContent='If this is your account, sign in below instead.';}
+   showScr('invalid');
+  }else{showScr('signup');}
+ }else{
+  // Resume existing session if any
+  const {data:{session}}=await DB.sb.auth.getSession();
+  if(session){
+   const {data:biz,error:be}=await DB.sb.from('sb_businesses').select('*').eq('owner_user_id',session.user.id).maybeSingle();
+   if(be||!biz){await DB.sb.auth.signOut();showScr('login');}
+   else if(biz.frozen||biz.is_paused){await DB.sb.auth.signOut();
+    setMsg('liMsg', biz.frozen ? 'This account is no longer active.' : 'This account has been paused.','err');
+    showScr('login');}
+   else{await afterAuthLoadedBiz(biz);}
+  }else{showScr('login');}
+ }
+
+ // React to sign-out events from elsewhere
  DB.sb.auth.onAuthStateChange((event)=>{
-  if(event==='SIGNED_OUT'){DB.connected=false;DB.list=[];DB.biz=null;renderConnBar();signOut();}
+  if(event==='SIGNED_OUT'){DB.connected=false;DB.list=[];DB.biz=null;renderConnBar();signOut();showScr('login');}
+  if(event==='PASSWORD_RECOVERY'){showScr('reset');}
  });
 })();
 </script>

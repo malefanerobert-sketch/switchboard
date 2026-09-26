@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwitchBoard — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--fd:'Space Grotesk',sans-serif;--fb:'DM Sans',sans-serif}
+body{font-family:var(--fb);background:#0b1416;color:#e9f5f2;min-height:100vh}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:14px}
+.hidden{display:none!important}
+a{color:#2ee6c3;font-weight:600;text-decoration:none}
+::-webkit-scrollbar{width:10px}::-webkit-scrollbar-thumb{background:#2a3d42;border-radius:6px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* Toasts */
+#toasts{position:fixed;right:20px;bottom:20px;z-index:999;display:flex;flex-direction:column;gap:10px}
+.toast{display:flex;align-items:center;gap:10px;background:#10262a;border:1px solid rgba(46,230,195,.35);color:#e9f5f2;padding:12px 16px;border-radius:10px;font-size:13.5px;max-width:340px;box-shadow:0 12px 32px rgba(0,0,0,.45);opacity:0;transform:translateY(12px);transition:.3s}
+.toast.in{opacity:1;transform:none}
+.toast .td{width:8px;height:8px;border-radius:50%;flex:none}
+.t-ok .td{background:#2ee6c3;box-shadow:0 0 10px #2ee6c3}
+.t-warn .td{background:#ffb454}
+.t-bad .td{background:#ff7a6b}
+
+/* Login gate */
+#gate{min-height:100vh;display:grid;place-items:center;background:radial-gradient(600px 400px at 80% 15%,rgba(255,180,84,.07),transparent 60%),radial-gradient(700px 500px at 15% 85%,rgba(46,230,195,.08),transparent 60%),radial-gradient(rgba(233,245,242,.05) 1px,transparent 1px) 0 0/26px 26px,#0b1416}
+.gate-card{width:min(420px,92vw);border:1px solid rgba(233,245,242,.1);border-radius:18px;padding:34px;background:linear-gradient(160deg,#101f23,#0d181b);animation:fadeUp .5s both}
+.gate-logo{width:54px;height:54px;border-radius:14px;margin:0 auto 16px;background:linear-gradient(135deg,#0f2a2c,#123a37);border:1px solid rgba(46,230,195,.4);display:grid;place-items:center;box-shadow:0 0 24px rgba(46,230,195,.18)}
+.gate-card h1{font-family:var(--fd);font-size:22px;margin:0 0 6px;text-align:center}
+.gate-card > p{color:#8fb0ac;font-size:13.5px;margin-bottom:18px;text-align:center;line-height:1.55}
+.gate-card label{display:block;font-size:12px;color:#8fb0ac;margin:10px 0 4px}
+.gate-card input{width:100%;background:#0d181b;border:1px solid rgba(233,245,242,.1);color:#e9f5f2;padding:11px 13px;border-radius:10px;outline:none}
+.gate-card input:focus{border-color:rgba(46,230,195,.55);box-shadow:0 0 0 3px rgba(46,230,195,.12)}
+.enter-btn{width:100%;background:linear-gradient(135deg,#12695a,#0e9579);color:#eafffa;font-family:var(--fd);font-weight:700;font-size:15px;padding:13px;border-radius:11px;margin-top:16px;box-shadow:0 8px 22px rgba(46,230,195,.15)}
+.enter-btn[disabled]{opacity:.6;cursor:default}
+.auth-msg{font-size:12.5px;min-height:16px;margin-top:8px;color:#ff9c8f}
+.gate-alt{font-size:12.5px;color:#8fb0ac;text-align:center;margin-top:14px}
+
+/* App shell */
+#app{min-height:100vh;display:grid;grid-template-columns:240px 1fr;background:#0b1416}
+.side{background:linear-gradient(180deg,#0f1c1f,#0b1416);border-right:1px solid rgba(233,245,242,.06);padding:22px 18px;display:flex;flex-direction:column;gap:16px}
+.side .brand{display:flex;gap:10px;align-items:center;font-family:var(--fd);font-weight:700;font-size:16px}
+.side .nav{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.side .nav button{text-align:left;padding:9px 12px;border-radius:9px;color:#bcd6d1;font-size:13.5px}
+.side .nav button:hover{background:rgba(46,230,195,.06);color:#eafffa}
+.side .nav button.act{background:rgba(46,230,195,.12);color:#eafffa}
+.side .foot{margin-top:auto;font-size:12px;color:#6d8783;line-height:1.5}
+.side .signout{background:transparent;border:1px solid rgba(233,245,242,.12);color:#bcd6d1;padding:9px;border-radius:9px;font-size:13px;margin-top:10px}
+.side .signout:hover{border-color:rgba(255,122,107,.45);color:#ff9c8f}
+
+.main{padding:28px 32px 60px;max-width:1200px}
+.view-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:16px;flex-wrap:wrap}
+.view-head h1{font-family:var(--fd);font-size:22px;margin:0}
+.view-head .sub{color:#8fb0ac;font-size:13px;margin-top:2px}
+
+.panel{background:linear-gradient(160deg,#101f23,#0d181b);border:1px solid rgba(233,245,242,.08);border-radius:14px;padding:20px;margin-bottom:18px}
+.panel h3{font-family:var(--fd);font-size:14px;letter-spacing:.4px;text-transform:uppercase;color:#8fead4;margin-bottom:6px}
+.panel .h-sub{color:#8fb0ac;font-size:12.5px;margin-bottom:14px;line-height:1.5}
+
+.btn{background:linear-gradient(135deg,#12695a,#0e9579);color:#eafffa;font-family:var(--fd);font-weight:700;font-size:13px;padding:9px 14px;border-radius:9px}
+.btn.ghost{background:transparent;border:1px solid rgba(233,245,242,.15);color:#bcd6d1}
+.btn.warn{background:linear-gradient(135deg,#8a6114,#c58619);color:#fff5df}
+.btn.danger{background:linear-gradient(135deg,#7a2a24,#b5433f);color:#ffe4e0}
+.btn.sm{padding:6px 10px;font-size:12px}
+.btn[disabled]{opacity:.55;cursor:default}
+
+.linkbox{margin-top:12px;background:#0d181b;border:1px solid rgba(233,245,242,.1);border-radius:10px;padding:11px 13px;display:none;flex-direction:column;gap:8px}
+.linkbox.on{display:flex}
+.linkbox a{word-break:break-all;font-family:'DM Sans',sans-serif;font-size:12.5px}
+.linkbox .row{display:flex;gap:8px}
+
+/* Client list */
+.client-row{background:linear-gradient(160deg,#101f23,#0d181b);border:1px solid rgba(233,245,242,.08);border-radius:12px;padding:16px 18px;margin-bottom:10px;transition:.15s}
+.client-row:hover{border-color:rgba(46,230,195,.2)}
+.client-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.client-head .grow{flex:1;min-width:220px}
+.client-head b{font-size:14.5px;font-family:var(--fd)}
+.client-head .sub{font-size:12px;color:#8fb0ac;margin-top:2px;font-family:monospace}
+.pill{display:inline-block;background:#0d2528;color:#8fead4;border:1px solid rgba(46,230,195,.3);padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.3px}
+.pill.gray{background:#1a2427;color:#a8b8b5;border-color:rgba(233,245,242,.08)}
+.pill.warn{background:rgba(255,180,84,.12);color:#ffcf8f;border-color:rgba(255,180,84,.3)}
+.pill.bad{background:rgba(255,122,107,.12);color:#ff9c8f;border-color:rgba(255,122,107,.3)}
+.icon-btn{background:transparent;border:1px solid rgba(233,245,242,.1);color:#bcd6d1;width:34px;height:34px;border-radius:9px;font-size:14px;display:inline-grid;place-items:center}
+.icon-btn:hover{border-color:rgba(46,230,195,.4);color:#eafffa}
+.icon-btn.danger:hover{border-color:rgba(255,122,107,.45);color:#ff9c8f}
+.icon-btn.warn.on{border-color:rgba(255,180,84,.6);color:#ffcf8f;background:rgba(255,180,84,.08)}
+
+.details{margin-top:14px;padding-top:14px;border-top:1px dashed rgba(233,245,242,.08);display:none}
+.details.open{display:block}
+.set-grid{display:flex;flex-direction:column;gap:12px}
+.set-field label{display:block;font-size:11.5px;color:#8fb0ac;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.set-field input,.set-field textarea{width:100%;background:#0d181b;border:1px solid rgba(233,245,242,.1);color:#e9f5f2;padding:10px 12px;border-radius:9px;outline:none;font-family:inherit;font-size:13.5px}
+.set-field textarea{min-height:140px;line-height:1.55;resize:vertical}
+.set-field input:focus,.set-field textarea:focus{border-color:rgba(46,230,195,.55)}
+.field-hint{font-size:11.5px;color:#6d8783;margin-top:4px;line-height:1.5}
+.row-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
+
+.empty{padding:32px;text-align:center;color:#8fb0ac;background:#0d181b;border:1px dashed rgba(233,245,242,.1);border-radius:12px}
+
+.searchbar{display:flex;gap:8px;margin-bottom:14px}
+.searchbar input{flex:1;background:#0d181b;border:1px solid rgba(233,245,242,.1);color:#e9f5f2;padding:10px 12px;border-radius:9px;outline:none}
+.searchbar input:focus{border-color:rgba(46,230,195,.55)}
+</style>
+</head>
+<body>
+
+<div id="toasts"></div>
+
+<!-- gate -->
+<section id="gate">
+  <div class="gate-card">
+    <div class="gate-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2ee6c3" stroke-width="2" stroke-linecap="round"><path d="M12 2v6m0 4v10M5 8l7 4 7-4"/></svg></div>
+    <h1>SwitchBoard Admin</h1>
+    <p>Sign in with your admin account.</p>
+    <form id="loginForm" onsubmit="return handleLogin(event)">
+      <label>Email</label>
+      <input id="liEmail" type="email" autocomplete="username" placeholder="you@switchboard.app" required>
+      <label>Password</label>
+      <input id="liPassword" type="password" autocomplete="current-password" placeholder="••••••••" required>
+      <div id="liMsg" class="auth-msg"></div>
+      <button class="enter-btn" type="submit" id="liSubmit">Sign in →</button>
+    </form>
+    <p class="gate-alt"><a href="index.html">← Back to SwitchBoard</a></p>
+  </div>
+</section>
+
+<!-- app -->
+<section id="app" class="hidden">
+  <aside class="side">
+    <div class="brand">
+      <div class="gate-logo" style="width:32px;height:32px;margin:0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2ee6c3" stroke-width="2" stroke-linecap="round"><path d="M12 2v6m0 4v10M5 8l7 4 7-4"/></svg>
+      </div>
+      <span>SwitchBoard · Admin</span>
+    </div>
+    <nav class="nav">
+      <button class="act" data-view="clients">👥 Clients</button>
+      <button data-view="settings">⚙ Settings</button>
+    </nav>
+    <div class="foot" id="whoami">—</div>
+    <button class="signout" onclick="handleSignOut()">Sign out</button>
+  </aside>
+
+  <main class="main">
+    <!-- CLIENTS -->
+    <div class="view" id="view-clients">
+      <div class="view-head">
+        <div>
+          <h1>Clients</h1>
+          <div class="sub">Generate signup links, pause / freeze accounts, or set each account's AI prompt.</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Generate a signup link</h3>
+        <div class="h-sub">Creates a one-time signup link tied to a fresh client id. Send it to whoever should have access — they'll be able to create their login once. You can freeze the link any time.</div>
+        <button class="btn" id="genBtn" onclick="generateSignupLink()">+ Generate signup link</button>
+        <div class="linkbox" id="genBox">
+          <a id="genLink" href="#" target="_blank" rel="noopener">—</a>
+          <div class="row">
+            <button class="btn sm ghost" onclick="copyGenLink(this)">Copy link</button>
+            <button class="btn sm ghost" onclick="closeGenBox()">Close</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="searchbar">
+        <input id="clientSearch" placeholder="Search by business name, client id, or email…" oninput="renderClients()">
+      </div>
+      <div id="clientList"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="view hidden" id="view-settings">
+      <div class="view-head"><h1>Settings</h1></div>
+      <div class="panel">
+        <h3>Admin account</h3>
+        <div class="h-sub">These are the details for the currently signed-in admin.</div>
+        <div id="adminInfo">—</div>
+      </div>
+      <div class="panel">
+        <h3>Portal link base</h3>
+        <div class="h-sub">Generated signup links use this URL as the base.</div>
+        <code id="baseUrl" style="font-size:12.5px;color:#8fead4">—</code>
+      </div>
+    </div>
+  </main>
+</section>
+
+<script>
+/* ============ Supabase ============ */
+const SUPA={
+  url:'https://suiilufpgjkbiawetttd.supabase.co',
+  key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1aWlsdWZwZ2prYmlhd2V0dHRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyMDUwNzIsImV4cCI6MjA5ODc4MTA3Mn0.tNISiQiyVFZxbP72TMxIy1IWiNkvHrjLqCEKjwh8MKQ'
+};
+const PORTAL_BASE = location.origin + location.pathname.replace(/admin\.html.*$/, 'index.html');
+
+const $=(s)=>document.querySelector(s);
+const $$=(s)=>document.querySelectorAll(s);
+let sb=null, ME=null, CLIENTS=[];
+
+function toast(text,kind){
+  kind=kind||'ok';
+  const t=document.createElement('div');
+  t.className='toast t-'+kind;
+  t.innerHTML='<span class="td"></span><span>'+text+'</span>';
+  document.getElementById('toasts').appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('in'));
+  setTimeout(()=>{t.classList.remove('in');setTimeout(()=>t.remove(),300);},3500);
+}
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function setMsg(id,text,cls){const el=document.getElementById(id);if(!el)return;el.textContent=text||'';el.className='auth-msg '+(cls||'');}
+
+/* ============ Auth ============ */
+async function handleLogin(ev){
+  ev.preventDefault();
+  if(!sb){toast('Supabase not ready','bad');return false;}
+  const email=$('#liEmail').value.trim(), password=$('#liPassword').value;
+  setMsg('liMsg','Signing in…','');$('#liSubmit').disabled=true;
+  try{
+    const {data,error}=await sb.auth.signInWithPassword({email,password});
+    if(error) throw error;
+    const {data:adminRow,error:aErr}=await sb.from('sb_admins').select('user_id').eq('user_id',data.user.id).maybeSingle();
+    if(aErr) throw aErr;
+    if(!adminRow){
+      await sb.auth.signOut();
+      throw new Error('This account is not set up as an admin.');
+    }
+    ME=data.user;
+    enterApp();
+  }catch(e){
+    setMsg('liMsg', e.message||'Sign in failed','err');
+    $('#liSubmit').disabled=false;
+  }
+  return false;
+}
+async function handleSignOut(){
+  try{await sb.auth.signOut();}catch(e){}
+  ME=null;
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('gate').style.display='grid';
+  setMsg('liMsg','Signed out.','ok');
+  $('#liSubmit').disabled=false;
+}
+function enterApp(){
+  document.getElementById('gate').style.display='none';
+  document.getElementById('app').classList.remove('hidden');
+  $('#whoami').innerHTML='Signed in as<br><b style="color:#eafffa">'+esc(ME.email)+'</b>';
+  $('#adminInfo').innerHTML='<b>'+esc(ME.email)+'</b><br><span style="color:#8fb0ac;font-size:12.5px">user id: '+esc(ME.id)+'</span>';
+  $('#baseUrl').textContent=PORTAL_BASE+'?portal=CLI-…';
+  loadClients();
+}
+
+/* ============ View switching ============ */
+$$('.side .nav button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    $$('.side .nav button').forEach(x=>x.classList.toggle('act',x===b));
+    const v=b.dataset.view;
+    document.querySelectorAll('.view').forEach(x=>x.classList.toggle('hidden', x.id!=='view-'+v));
+  });
+});
+
+/* ============ Signup link generation ============ */
+function makeClientId(){
+  const chars='abcdef0123456789';let s='';
+  for(let i=0;i<8;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+  return 'CLI-'+s;
+}
+async function generateSignupLink(){
+  const btn=$('#genBtn');btn.disabled=true;btn.textContent='Generating…';
+  try{
+    const cid=makeClientId();
+    const {error}=await sb.from('sb_businesses').insert({client_id:cid, is_paused:false, frozen:false, vapi_enabled:false});
+    if(error) throw error;
+    const link=PORTAL_BASE+'?portal='+cid;
+    $('#genLink').textContent=link;$('#genLink').href=link;
+    $('#genBox').classList.add('on');
+    toast('✓ Signup link ready','ok');
+    await loadClients();
+  }catch(e){
+    toast('Failed: '+e.message,'bad');
+  }finally{
+    btn.disabled=false;btn.textContent='+ Generate signup link';
+  }
+}
+async function copyGenLink(btn){
+  const text=$('#genLink').textContent;
+  try{await navigator.clipboard.writeText(text); btn.textContent='Copied ✓';}
+  catch(e){btn.textContent="Couldn't copy — long-press the link";}
+  setTimeout(()=>btn.textContent='Copy link',1500);
+}
+function closeGenBox(){$('#genBox').classList.remove('on');}
+
+/* ============ Clients CRUD ============ */
+async function loadClients(){
+  const {data,error}=await sb.from('sb_businesses').select('*').order('client_id',{ascending:true});
+  if(error){toast('Load failed: '+error.message,'bad');return;}
+  CLIENTS=data||[];renderClients();
+}
+function renderClients(){
+  const q=($('#clientSearch').value||'').toLowerCase();
+  const list=CLIENTS.filter(c=>{
+    if(!q) return true;
+    return (c.client_id||'').toLowerCase().includes(q)
+        || (c.name||'').toLowerCase().includes(q)
+        || (c.owner||'').toLowerCase().includes(q)
+        || (c.phone||'').toLowerCase().includes(q);
+  });
+  const el=$('#clientList');
+  if(!list.length){el.innerHTML='<div class="empty">No clients yet. Generate a signup link above to invite one.</div>';return;}
+  el.innerHTML=list.map(c=>{
+    const claimed=!!c.owner_user_id;
+    const statusPill=c.frozen
+      ? '<span class="pill bad">🔒 Frozen</span>'
+      : c.is_paused
+        ? '<span class="pill warn">⏸ Paused</span>'
+        : claimed
+          ? '<span class="pill">● Active</span>'
+          : '<span class="pill gray">Awaiting signup</span>';
+    const vapi = c.vapi_assistant_id ? '<span class="pill gray">vapi: '+esc(c.vapi_assistant_id.slice(0,10))+'…</span>' : '<span class="pill gray">no vapi yet</span>';
+    return '<div class="client-row" data-id="'+c.id+'">'
+      +'<div class="client-head">'
+        +'<div class="grow">'
+          +'<b>'+esc(c.name || '(unclaimed)')+'</b>'
+          +'<div class="sub">'+esc(c.client_id||'')+(c.phone?' · '+esc(c.phone):'')+'</div>'
+        +'</div>'
+        +statusPill
+        +vapi
+        +'<button class="icon-btn" title="Settings" onclick="toggleDetails(\''+c.id+'\', this)">⚙</button>'
+        +'<button class="icon-btn warn '+(c.is_paused?'on':'')+'" title="'+(c.is_paused?'Reactivate account':'Pause account')+'" onclick="togglePause(\''+c.id+'\')">'+(c.is_paused?'▶':'⏸')+'</button>'
+        +'<button class="icon-btn '+(c.frozen?'warn on':'')+'" title="'+(c.frozen?'Unfreeze':'Freeze')+'" onclick="toggleFreeze(\''+c.id+'\')">'+(c.frozen?'🔒':'🔓')+'</button>'
+        +'<button class="icon-btn danger" title="Delete" onclick="deleteClient(\''+c.id+'\')">✕</button>'
+      +'</div>'
+      +'<div class="details" id="det-'+c.id+'">'
+        +'<div class="set-grid">'
+          +'<div class="set-field"><label>Business name</label><input data-f="name" value="'+esc(c.name||'')+'"></div>'
+          +'<div class="set-field"><label>Owner</label><input data-f="owner" value="'+esc(c.owner||'')+'"></div>'
+          +'<div class="set-field"><label>Vapi phone number</label><input data-f="phone" value="'+esc(c.phone||'')+'"></div>'
+          +'<div class="set-field"><label>Fallback number</label><input data-f="fallback_phone" value="'+esc(c.fallback_phone||'')+'"></div>'
+          +'<div class="set-field"><label>Vapi assistant id</label><input data-f="vapi_assistant_id" value="'+esc(c.vapi_assistant_id||'')+'"></div>'
+          +'<div class="set-field"><label>AI system prompt</label><textarea data-f="ai_prompt" placeholder="e.g. You are Dana, the friendly booking assistant for Copper Pot Kitchen…">'+esc(c.ai_prompt||'')+'</textarea><div class="field-hint">This is the assistant\u2019s system prompt. You can paste it here as your source of truth; syncing to Vapi is a next step.</div></div>'
+          +'<div class="row-actions">'
+            +'<button class="btn sm" onclick="saveClient(\''+c.id+'\')">💾 Save</button>'
+            +'<button class="btn sm ghost" onclick="copyClientLink(\''+esc(c.client_id||'')+'\', this)">Copy signup link</button>'
+          +'</div>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+function toggleDetails(id,btn){
+  const d=document.getElementById('det-'+id);
+  if(!d) return;
+  d.classList.toggle('open');
+  btn.textContent=d.classList.contains('open')?'✕':'⚙';
+}
+async function togglePause(id){
+  const c=CLIENTS.find(x=>x.id===id);if(!c) return;
+  const next=!c.is_paused;
+  const {error}=await sb.from('sb_businesses').update({is_paused:next}).eq('id',id);
+  if(error){toast('Failed: '+error.message,'bad');return;}
+  c.is_paused=next;renderClients();
+  toast(next?'Account paused':'Account reactivated', next?'warn':'ok');
+}
+async function toggleFreeze(id){
+  const c=CLIENTS.find(x=>x.id===id);if(!c) return;
+  const next=!c.frozen;
+  const {error}=await sb.from('sb_businesses').update({frozen:next}).eq('id',id);
+  if(error){toast('Failed: '+error.message,'bad');return;}
+  c.frozen=next;renderClients();
+  toast(next?'Portal frozen — signin blocked':'Portal unfrozen', next?'warn':'ok');
+}
+async function deleteClient(id){
+  const c=CLIENTS.find(x=>x.id===id);if(!c) return;
+  const label=c.name||c.client_id||'this client';
+  const ok=confirm('Permanently delete "'+label+'"? This removes their business row and all their calls, bookings, orders, and pending changes. Their auth login itself is not removed. This cannot be undone.');
+  if(!ok) return;
+  // best-effort cascade: child rows first so RLS is satisfied
+  const {error:e1}=await sb.from('sb_calls').delete().eq('business_id',id);
+  const {error:e2}=await sb.from('sb_bookings').delete().eq('business_id',id);
+  const {error:e3}=await sb.from('sb_orders').delete().eq('business_id',id);
+  const {error:e4}=await sb.from('sb_pending_changes').delete().eq('business_id',id);
+  const anyErr=e1||e2||e3||e4;
+  if(anyErr){toast('Delete failed on child rows: '+anyErr.message,'bad');return;}
+  const {error}=await sb.from('sb_businesses').delete().eq('id',id);
+  if(error){toast('Delete failed: '+error.message,'bad');return;}
+  CLIENTS=CLIENTS.filter(x=>x.id!==id);renderClients();
+  toast('Client deleted','warn');
+}
+async function saveClient(id){
+  const det=document.getElementById('det-'+id);
+  if(!det) return;
+  const payload={};
+  det.querySelectorAll('[data-f]').forEach(inp=>{
+    payload[inp.dataset.f]=(inp.value||'').trim() || null;
+  });
+  const {data,error}=await sb.from('sb_businesses').update(payload).eq('id',id).select().single();
+  if(error){toast('Save failed: '+error.message,'bad');return;}
+  const idx=CLIENTS.findIndex(x=>x.id===id);if(idx>=0) CLIENTS[idx]=data;
+  renderClients();
+  toast('✓ Saved','ok');
+}
+async function copyClientLink(cid,btn){
+  if(!cid){toast('This client has no client_id','warn');return;}
+  const link=PORTAL_BASE+'?portal='+cid;
+  try{await navigator.clipboard.writeText(link);btn.textContent='Copied ✓';}
+  catch(e){btn.textContent="Couldn't copy";}
+  setTimeout(()=>btn.textContent='Copy signup link',1500);
+}
+
+/* ============ Boot ============ */
+(async function(){
+  if(!window.supabase){toast('Supabase library failed to load','bad');return;}
+  sb=window.supabase.createClient(SUPA.url,SUPA.key,{auth:{persistSession:true,autoRefreshToken:true}});
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){
+    // verify admin
+    const {data:row}=await sb.from('sb_admins').select('user_id').eq('user_id',session.user.id).maybeSingle();
+    if(row){ME=session.user;enterApp();return;}
+    await sb.auth.signOut();
+  }
+  document.getElementById('gate').style.display='grid';
+})();
+</script>
+</body>
+</html>

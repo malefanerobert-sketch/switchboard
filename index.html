@@ -204,6 +204,30 @@ a{color:inherit}
  .hero-left{border-right:none;border-bottom:1px solid rgba(233,245,242,.07)}
  .c-top{padding:12px 16px}.c-views{padding:16px 16px 50px}
 }
+
+/* auth (added for multi-tenant) */
+.auth-tabs{display:flex;gap:6px;margin-bottom:16px;background:#0d181b;border:1px solid rgba(233,245,242,.08);border-radius:11px;padding:4px}
+.auth-tab{flex:1;padding:9px 10px;border-radius:8px;font-family:var(--fd);font-weight:600;font-size:13px;color:#8fb0ac}
+.auth-tab.act{background:linear-gradient(135deg,#12695a,#0e9579);color:#eafffa;box-shadow:0 6px 16px rgba(46,230,195,.18)}
+#authForm{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+#authForm input{background:#0d181b;border:1px solid rgba(233,245,242,.1);color:#e9f5f2;padding:12px 14px;border-radius:10px;outline:none;transition:.15s}
+#authForm input:focus{border-color:rgba(46,230,195,.55);box-shadow:0 0 0 3px rgba(46,230,195,.12)}
+#authMsg{font-size:12.5px;min-height:16px;text-align:left;margin:-4px 0 4px}
+#authMsg.err{color:#ff9c8f}#authMsg.ok{color:#8fead4}
+/* create-business modal */
+#bizModal{position:fixed;inset:0;background:rgba(6,12,14,.72);backdrop-filter:blur(6px);display:none;place-items:center;z-index:998}
+#bizModal.on{display:grid}
+.biz-card{width:min(460px,92vw);background:linear-gradient(160deg,#101f23,#0d181b);border:1px solid rgba(233,245,242,.1);border-radius:16px;padding:26px;animation:fadeUp .35s both}
+.biz-card h2{font-family:var(--fd);font-size:19px;margin-bottom:6px}
+.biz-card p{font-size:13px;color:#8fb0ac;margin-bottom:16px}
+.biz-card .set-field{margin-bottom:10px}
+.biz-card label{font-size:12px;color:#8fb0ac;display:block;margin-bottom:4px}
+.biz-card input{width:100%;background:#0d181b;border:1px solid rgba(233,245,242,.1);color:#e9f5f2;padding:11px 12px;border-radius:9px;outline:none}
+.biz-card input:focus{border-color:rgba(46,230,195,.55)}
+.biz-card .row{display:flex;gap:8px;margin-top:14px}
+.biz-card .row button{flex:1;padding:12px;border-radius:10px;font-family:var(--fd);font-weight:700}
+.biz-primary{background:linear-gradient(135deg,#12695a,#0e9579);color:#eafffa}
+.biz-ghost{background:transparent;border:1px solid rgba(233,245,242,.15);color:#bcd6d1}
 </style>
 </head>
 <body>
@@ -213,12 +237,36 @@ a{color:inherit}
 <section id="gate">
   <div class="gate-card">
     <div class="gate-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2ee6c3" stroke-width="2" stroke-linecap="round"><path d="M12 2v6m0 4v10M5 8l7 4 7-4"/></svg></div>
-    <h1>SwitchBoard — Control Room</h1>
-    <p id="gateSub">User name · Dana Whitfield<br>Decide when your number answers with an agent — and see everything it captures.</p>
-    <button class="enter-btn" onclick="enterApp()">Enter my control room →</button>
+    <h1>SwitchBoard</h1>
+    <p id="gateSub">Sign in to your control room.</p>
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab act" data-mode="signin" onclick="switchAuthMode('signin')">Sign in</button>
+      <button type="button" class="auth-tab" data-mode="signup" onclick="switchAuthMode('signup')">Sign up</button>
+    </div>
+    <form id="authForm" onsubmit="return handleAuth(event)">
+      <input id="authEmail" type="email" placeholder="Email" autocomplete="email" required>
+      <input id="authPassword" type="password" placeholder="Password (min 6 characters)" autocomplete="current-password" required minlength="6">
+      <div id="authMsg"></div>
+      <button class="enter-btn" type="submit" id="authSubmit">Sign in →</button>
+    </form>
     <div class="gate-alt">Agency? <a href="switchboard-admin.html">Open the Admin panel →</a></div>
   </div>
 </section>
+<!-- create-business modal -->
+<div id="bizModal">
+  <div class="biz-card">
+    <h2>Set up your business</h2>
+    <p>You're signed in — add your first business to start.</p>
+    <div class="set-field"><label>Business name</label><input id="bizName" placeholder="e.g. Copper Pot Kitchen"></div>
+    <div class="set-field"><label>Your name (shown as owner)</label><input id="bizOwner" placeholder="Your name"></div>
+    <div class="set-field"><label>Your Vapi phone number</label><input id="bizPhone" placeholder="+1 555 555 0100"></div>
+    <div class="set-field"><label>Fallback number (rings your phone when switch is OFF)</label><input id="bizFallback" placeholder="+1 555 555 0101"></div>
+    <div class="row">
+      <button type="button" class="biz-ghost" onclick="signOut()">Sign out</button>
+      <button type="button" class="biz-primary" onclick="createBusiness()">Create</button>
+    </div>
+  </div>
+</div>
 
 <!-- app -->
 <section id="app" class="hidden">
@@ -241,7 +289,7 @@ a{color:inherit}
       <span class="conn-chip conn-demo" id="connChip" onclick="showView('control');window.scrollTo(0,0)">DEMO DATA</span>
       <span class="clock" id="clock">--:--:--</span>
       <a class="top-btn" href="switchboard-admin.html">Admin panel</a>
-      <button class="top-btn" onclick="signOut()">Sign out</button>
+      <button class="top-btn" onclick="dbDisconnect()">Sign out</button>
     </header>
     <div class="c-views">
       <div id="connBar"></div>
@@ -335,11 +383,14 @@ a{color:inherit}
         <div class="view-head"><h2>Voice agent settings</h2></div>
         <div class="panel" style="max-width:660px"><div class="panel-b">
           <div class="set-grid">
-            <div class="set-field"><label>Greeting the agent answers with</label><textarea id="setGreeting" rows="3"></textarea></div>
             <div class="set-field"><label>Fallback number if caller asks for a human</label><input type="text" id="setFallback"></div>
             <div class="set-field" style="display:flex;align-items:center;gap:12px">
               <label class="mini-sw"><input type="checkbox" id="setSpam"><span class="tk"></span></label>
               <span style="font-size:13.5px;color:#bcd6d1">Auto-block spam / robocalls</span></div>
+            <div class="set-field"><label>Your Vapi API key (private key)</label><input type="password" id="setVapiKey" placeholder="vapi_xxx"></div>
+            <div class="set-field"><label>Vapi phone-number ID</label><input type="text" id="setVapiPhone" placeholder="UUID from Vapi › Phone Numbers"></div>
+            <div class="set-field"><label>Vapi assistant ID</label><input type="text" id="setVapiAssistant" placeholder="UUID from Vapi › Assistants"></div>
+            <div style="font-size:12px;color:#8fb0ac;margin-top:-4px">When the switch is ON, we tell Vapi to assign this assistant to your number. When OFF, we clear it so calls follow your Vapi fallback / forwarding.</div>
             <div><button class="sim-btn" onclick="saveSettings()">Save</button></div>
           </div>
         </div></div>
@@ -420,42 +471,82 @@ const PENDS=()=>DB.connected?live.pending:S.pending;
 /* connect */
 function renderConnBar(){
  const el=$('#connBar');
- if(!DB.connected){
-  el.innerHTML='<div class="cb"><b style="color:#ffcf8f;font-size:13px">⚠ Sample data</b>'+
-   '<input id="supaUrl" placeholder="Project URL">'+
-   '<input id="supaKey" placeholder="anon / public key">'+
-   '<button class="cb-btn" onclick="dbConnect()">Connect</button>'+
-   '<span class="cb-hint">Paste your project credentials to go live — calls then arrive automatically.</span></div>';
- }else{
+ if(DB.connected && DB.list && DB.list.length){
   el.innerHTML='<div class="cb live"><span class="conn-chip conn-live">● LIVE</span>'+
    '<span style="font-size:12.5px;color:#8fb0ac">Acting as:</span>'+
    '<select onchange="switchBiz(this.value)">'+DB.list.map(b=>'<option value="'+b.id+'"'+(b.id===DB.biz.id?' selected':'')+'>'+b.name+'</option>').join('')+'</select>'+
-   '<span class="cb-hint" style="width:auto;flex:1">New calls sync every 15 s.</span>'+
-   '<button class="cb-x" onclick="dbDisconnect()">Disconnect</button></div>';
+   '<button class="cb-btn" onclick="openBizModal()">+ New business</button>'+
+   '<span class="cb-hint" style="width:auto;flex:1">New calls sync every 15 s.</span></div>';
+ }else{
+  el.innerHTML='<div class="cb"><b style="color:#ffcf8f;font-size:13px">⚠ Sample data</b>'+
+   '<span class="cb-hint">Sign in to sync with Supabase and go live.</span></div>';
  }
  const chip=$('#connChip');chip.className='conn-chip '+(DB.connected?'conn-live':'conn-demo');
  chip.textContent=DB.connected?'● LIVE':'DEMO DATA';
- $('#sideFoot').innerHTML=DB.connected
+ $('#sideFoot').innerHTML=DB.connected&&DB.biz
   ?'Voice agent<br>connected to <b style="color:#8fb0ac">'+(DB.biz.phone||'—')+'</b>'
   :'Voice agent<br>not connected yet';
 }
-async function dbConnect(preferBizId){
- const url=$('#supaUrl')?$('#supaUrl').value.trim():'',key=$('#supaKey')?$('#supaKey').value.trim():'';
- if(!url||!key){toast('Paste both the project URL and key','warn');return;}
- if(!window.supabase){toast('Connection library failed to load — check connection','bad');return;}
+/* auth-based data load */
+let AUTH_MODE='signin';
+function switchAuthMode(m){AUTH_MODE=m;
+ document.querySelectorAll('.auth-tab').forEach(b=>b.classList.toggle('act',b.dataset.mode===m));
+ $('#authSubmit').textContent=(m==='signup'?'Create account →':'Sign in →');
+ $('#authPassword').setAttribute('autocomplete',m==='signup'?'new-password':'current-password');
+ $('#authMsg').textContent='';$('#authMsg').className='';}
+function authMsg(text,cls){$('#authMsg').textContent=text||'';$('#authMsg').className=cls||'';}
+async function handleAuth(ev){
+ ev.preventDefault();
+ const email=$('#authEmail').value.trim(),password=$('#authPassword').value;
+ if(!DB.sb){toast('Supabase client not ready','bad');return false;}
+ $('#authSubmit').disabled=true;authMsg('Working…','');
  try{
-  const sb=window.supabase.createClient(url,key);
-  const {data,error}=await sb.from('sb_businesses').select('*').order('name');
-  if(error)throw error;
-  if(!data||!data.length)throw new Error('Connected, but sb_businesses is empty — add your business row first.');
-  DB.sb=sb;DB.connected=true;DB.list=data;DB.biz=data.find(b=>b.id===preferBizId)||data[0];
-  localStorage.setItem(CONN,JSON.stringify({url,key,bizId:DB.biz.id}));
-  syncBiz();renderConnBar();toast('✓ Connected — live mode','ok');
-  await refreshLive();
- }catch(e){toast('Connection failed: '+e.message,'bad');}
+  if(AUTH_MODE==='signup'){
+   const {data,error}=await DB.sb.auth.signUp({email,password});
+   if(error)throw error;
+   if(!data.session){authMsg('Check your inbox to confirm your email, then sign in.','ok');
+    $('#authSubmit').disabled=false;switchAuthMode('signin');return false;}
+  }else{
+   const {error}=await DB.sb.auth.signInWithPassword({email,password});
+   if(error)throw error;
+  }
+  await onSignedIn();
+ }catch(e){authMsg(e.message||'Auth failed','err');$('#authSubmit').disabled=false;}
+ return false;
 }
-function dbDisconnect(){localStorage.removeItem(CONN);DB.connected=false;DB.sb=null;DB.biz=null;
- renderConnBar();renderAll();toast('Disconnected — sample data','warn');}
+async function onSignedIn(){
+ authMsg('','');$('#authSubmit').disabled=false;
+ DB.connected=true;
+ const {data,error}=await DB.sb.from('sb_businesses').select('*').order('name');
+ if(error){toast('Load failed: '+error.message,'bad');return;}
+ DB.list=data||[];
+ const saved=JSON.parse(localStorage.getItem(CONN)||'{}');
+ DB.biz=DB.list.find(b=>b.id===saved.bizId)||DB.list[0]||null;
+ if(!DB.biz){enterApp();openBizModal();renderConnBar();return;}
+ localStorage.setItem(CONN,JSON.stringify({bizId:DB.biz.id}));
+ syncBiz();enterApp();renderConnBar();toast('✓ Signed in','ok');await refreshLive();
+}
+function openBizModal(){$('#bizModal').classList.add('on');setTimeout(()=>$('#bizName').focus(),50);}
+function closeBizModal(){$('#bizModal').classList.remove('on');}
+async function createBusiness(){
+ const name=$('#bizName').value.trim(),owner=$('#bizOwner').value.trim(),
+       phone=$('#bizPhone').value.trim(),fallback=$('#bizFallback').value.trim();
+ if(!name){toast('Business name is required','warn');return;}
+ const u=(await DB.sb.auth.getUser()).data.user;
+ const {data,error}=await DB.sb.from('sb_businesses').insert({
+  name,owner:owner||u.email,phone,fallback_phone:fallback,vapi_enabled:false,owner_user_id:u.id
+ }).select().single();
+ if(error){toast('Create failed: '+error.message,'bad');return;}
+ DB.list.push(data);DB.biz=data;
+ localStorage.setItem(CONN,JSON.stringify({bizId:DB.biz.id}));
+ syncBiz();closeBizModal();renderConnBar();renderAll();toast('✓ Business created','ok');
+}
+async function dbDisconnect(){
+ try{if(DB.sb)await DB.sb.auth.signOut();}catch(e){}
+ localStorage.removeItem(CONN);
+ DB.connected=false;DB.list=[];DB.biz=null;
+ renderConnBar();signOut();toast('Signed out','warn');
+}
 function syncBiz(){if(!DB.biz)return;
  S.bizName=DB.biz.name;S.bizOwner=DB.biz.owner||'Owner';S.bizPhone=DB.biz.phone||'+1 (—) ———';
  S.mainOn=!!DB.biz.vapi_enabled;if(DB.biz.fallback_phone)S.fallback=DB.biz.fallback_phone;save();}
@@ -496,11 +587,27 @@ async function flipSwitch(){
  if(DB.connected){
   const {error}=await DB.sb.from('sb_businesses').update({vapi_enabled:target}).eq('id',DB.biz.id);
   if(error){toast('Update failed: '+error.message,'bad');switching=false;el.classList.remove('switching');return;}
-  DB.biz.vapi_enabled=target;}
+  DB.biz.vapi_enabled=target;
+  const vr=await applyVapiRouting(target);
+  if(vr && vr.error){toast('Switch saved, but Vapi update failed: '+vr.error,'warn');}
+ }
  S.mainOn=target;S.lastFlip=Date.now();S.resumeAt=0;switching=false;
  el.classList.remove('switching');save();renderControl();
  toast(target?'✓ Number routed to the agent — Agent is answering':'Calls now ring your phone directly',target?'ok':'warn');
  if(target&&!DB.connected)setTimeout(makeCall,4200);}
+/* BYO Vapi: PATCH the caller's phone-number to (un)assign their assistant */
+async function applyVapiRouting(on){
+ const b=DB.biz;if(!b||!b.vapi_api_key||!b.vapi_phone_number_id)return null;
+ try{
+  const body=on?{assistantId:b.vapi_assistant_id||null}:{assistantId:null};
+  const r=await fetch('https://api.vapi.ai/phone-number/'+b.vapi_phone_number_id,{
+   method:'PATCH',
+   headers:{'Authorization':'Bearer '+b.vapi_api_key,'Content-Type':'application/json'},
+   body:JSON.stringify(body)});
+  if(!r.ok){const t=await r.text();return {error:'HTTP '+r.status+' '+t.slice(0,120)};}
+  return {ok:true};
+ }catch(e){return {error:e.message||'network error'};}
+}
 function pauseFor(min){S.mainOn=false;S.resumeAt=Date.now()+min*6e4;save();renderControl();
  if(DB.connected)DB.sb.from('sb_businesses').update({vapi_enabled:false}).eq('id',DB.biz.id);
  toast('Agent paused — back on in '+min+' min','warn');}
@@ -627,9 +734,17 @@ async function pushSchedule(){
  if(!S.pending)S.pending=[];
  S.pending.unshift({id:uid(),client:S.bizName,desc,pushed:false});save();renderSchedule();
  toast('Schedule sent — admin will mark it pushed to agent ↗','ok');}
-function renderSettings(){$('#setGreeting').value=S.greeting;$('#setFallback').value=S.fallback;$('#setSpam').checked=S.spamFilter;}
-function saveSettings(){S.greeting=$('#setGreeting').value;S.fallback=$('#setFallback').value;S.spamFilter=$('#setSpam').checked;save();
- if(DB.connected)DB.sb.from('sb_businesses').update({fallback_phone:S.fallback}).eq('id',DB.biz.id);
+function renderSettings(){$('#setFallback').value=S.fallback;$('#setSpam').checked=S.spamFilter;if(DB.biz){$('#setVapiKey').value=DB.biz.vapi_api_key||'';$('#setVapiPhone').value=DB.biz.vapi_phone_number_id||'';$('#setVapiAssistant').value=DB.biz.vapi_assistant_id||'';}}
+async function saveSettings(){S.fallback=$('#setFallback').value;S.spamFilter=$('#setSpam').checked;save();
+ if(DB.connected&&DB.biz){
+  const payload={fallback_phone:S.fallback,
+   vapi_api_key:($('#setVapiKey').value||'').trim()||null,
+   vapi_phone_number_id:($('#setVapiPhone').value||'').trim()||null,
+   vapi_assistant_id:($('#setVapiAssistant').value||'').trim()||null};
+  const {data,error}=await DB.sb.from('sb_businesses').update(payload).eq('id',DB.biz.id).select().single();
+  if(error){toast('Save failed: '+error.message,'bad');return;}
+  if(data)DB.biz=data;
+ }
  toast('Settings saved'+(DB.connected?' & saved to cloud':''),'ok');}
 function renderAll(){renderControl();renderCalls();renderBookings();renderOrders();renderSchedule();renderSettings();}
 
@@ -673,12 +788,19 @@ setInterval(()=>{
 
 /* init */
 loadLocal();renderConnBar();
-(function(){
- // Live project (anon key is public/client-side by design)
- const DEFAULT_SUPA={url:'https://suiilufpgjkbiawetttd.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1aWlsdWZwZ2prYmlhd2V0dHRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyMDUwNzIsImV4cCI6MjA5ODc4MTA3Mn0.tNISiQiyVFZxbP72TMxIy1IWiNkvHrjLqCEKjwh8MKQ'};
- let c=JSON.parse(localStorage.getItem(CONN)||'null')||DEFAULT_SUPA;
- setTimeout(()=>{ if(!DB.connected){const bar=$('#connBar');
-  if(bar.querySelector('#supaUrl')){$('#supaUrl').value=c.url;$('#supaKey').value=c.key;dbConnect(c.bizId);}}},400);})();
+(async function(){
+ // Live project (anon key is public/client-side by design; RLS enforces per-user isolation)
+ const SUPA={url:'https://suiilufpgjkbiawetttd.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1aWlsdWZwZ2prYmlhd2V0dHRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyMDUwNzIsImV4cCI6MjA5ODc4MTA3Mn0.tNISiQiyVFZxbP72TMxIy1IWiNkvHrjLqCEKjwh8MKQ'};
+ if(!window.supabase){toast('Supabase library failed to load','bad');return;}
+ DB.sb=window.supabase.createClient(SUPA.url,SUPA.key,{auth:{persistSession:true,autoRefreshToken:true}});
+ // resume existing session if present
+ const {data:{session}}=await DB.sb.auth.getSession();
+ if(session){await onSignedIn();}
+ // react to future sign-in / sign-out events
+ DB.sb.auth.onAuthStateChange((event)=>{
+  if(event==='SIGNED_OUT'){DB.connected=false;DB.list=[];DB.biz=null;renderConnBar();signOut();}
+ });
+})();
 </script>
 </body>
 </html>

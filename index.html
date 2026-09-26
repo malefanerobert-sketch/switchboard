@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SwitchBoard — My Control Room</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--fd:'Space Grotesk',sans-serif;--fb:'DM Sans',sans-serif}
@@ -25,21 +24,11 @@ a{color:inherit}
 .toast.in{opacity:1;transform:none}
 .toast .td{width:8px;height:8px;border-radius:50%;flex:none}
 .t-ok .td{background:#2ee6c3;box-shadow:0 0 10px #2ee6c3}.t-warn .td{background:#ffb454}.t-bad .td{background:#ff7a6b}
-/* gate */
-#gate{min-height:100vh;display:grid;place-items:center;background:radial-gradient(600px 400px at 80% 15%,rgba(255,180,84,.07),transparent 60%),radial-gradient(700px 500px at 15% 85%,rgba(46,230,195,.08),transparent 60%),radial-gradient(rgba(233,245,242,.05) 1px,transparent 1px) 0 0/26px 26px,#0b1416}
-.gate-card{width:min(440px,92vw);border:1px solid rgba(233,245,242,.1);border-radius:18px;padding:34px;background:linear-gradient(160deg,#101f23,#0d181b);animation:fadeUp .5s both;text-align:center}
-.gate-logo{width:54px;height:54px;border-radius:14px;margin:0 auto 16px;background:linear-gradient(135deg,#0f2a2c,#123a37);border:1px solid rgba(46,230,195,.4);display:grid;place-items:center;box-shadow:0 0 24px rgba(46,230,195,.18)}
-.gate-card h1{font-family:var(--fd);font-size:22px;margin-bottom:6px}
-.gate-card p{font-size:13.5px;color:#8fb0ac;margin-bottom:22px;line-height:1.55}
-.enter-btn{width:100%;background:linear-gradient(135deg,#12695a,#0e9579);color:#eafffa;font-family:var(--fd);font-weight:700;font-size:15px;padding:14px;border-radius:11px;transition:.2s;box-shadow:0 8px 22px rgba(46,230,195,.2)}
-.enter-btn:hover{transform:translateY(-2px)}
-.gate-alt{margin-top:18px;font-size:12.5px;color:#557a75}
-.gate-alt a{color:#7fa39e}
 /* app shell */
 #app{display:flex;min-height:100vh}
 .c-side{width:222px;flex:none;border-right:1px solid rgba(233,245,242,.08);padding:22px 14px;display:flex;flex-direction:column;gap:4px;background:#0a1214}
 .c-brand{display:flex;align-items:center;gap:10px;padding:4px 10px 20px}
-.c-brand .gate-logo{width:36px;height:36px;border-radius:10px;margin:0}
+.c-brand 
 .c-brand b{font-family:var(--fd);font-size:16px}
 .cnav{display:flex;flex-direction:column;gap:3px}
 .cnav button{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:10px;color:#7fa39e;font-size:14px;font-weight:500;transition:.18s;text-align:left}
@@ -205,120 +194,19 @@ a{color:inherit}
  .c-top{padding:12px 16px}.c-views{padding:16px 16px 50px}
 }
 
-/* auth (added for multi-tenant) */
-.auth-tabs{display:flex;gap:6px;margin-bottom:16px;background:#0d181b;border:1px solid rgba(233,245,242,.08);border-radius:11px;padding:4px}
-.auth-tab{flex:1;padding:9px 10px;border-radius:8px;font-family:var(--fd);font-weight:600;font-size:13px;color:#8fb0ac}
-.auth-tab.act{background:linear-gradient(135deg,#12695a,#0e9579);color:#eafffa;box-shadow:0 6px 16px rgba(46,230,195,.18)}
-#authForm{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
-#authForm input{background:#0d181b;border:1px solid rgba(233,245,242,.1);color:#e9f5f2;padding:12px 14px;border-radius:10px;outline:none;transition:.15s}
-#authForm input:focus{border-color:rgba(46,230,195,.55);box-shadow:0 0 0 3px rgba(46,230,195,.12)}
 /* create-business modal */
 
-/* ===== SwitchBoard auth (JobAgent-style) ===== */
-#authWrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
-  background:radial-gradient(700px 480px at 82% 12%,rgba(46,230,195,.10),transparent 60%),
-             radial-gradient(700px 500px at 15% 88%,rgba(255,180,84,.06),transparent 60%),
-             radial-gradient(rgba(233,245,242,.045) 1px,transparent 1px) 0 0/26px 26px,#0a1214}
-.auth-card{width:100%;max-width:440px;background:linear-gradient(180deg,#0f2124,#0b181b);
-  border:1px solid rgba(233,245,242,.1);border-radius:20px;padding:34px;
-  box-shadow:0 30px 80px rgba(0,0,0,.55);animation:fadeUp .45s both}
-.a-brand{text-align:center;margin-bottom:24px}
-.a-brand h1{font-family:var(--fd,'Space Grotesk',sans-serif);font-size:26px;font-weight:800;letter-spacing:-.02em;margin:2px 0 4px}
-.a-brand h1 .sb-a{color:#2ee6c3}.a-brand h1 .sb-b{color:#8fead4}
-.a-brand p{color:#8fb0ac;font-size:13.5px;margin-top:4px}
-.a-pulse{position:relative;width:74px;height:74px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center}
-.a-pulse .dish{z-index:2;width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#0f2a2c,#123a37);
-  border:1px solid rgba(46,230,195,.4);display:grid;place-items:center;box-shadow:0 0 24px rgba(46,230,195,.22)}
-.a-pulse::before,.a-pulse::after{content:'';position:absolute;inset:0;border-radius:50%;
-  border:2px solid rgba(46,230,195,.55);animation:aPing 2.4s ease-out infinite}
-.a-pulse::after{animation-delay:1.2s}
-@keyframes aPing{0%{transform:scale(.55);opacity:1}100%{transform:scale(1.5);opacity:0}}
-.a-field{margin-bottom:14px}
-.a-field label{display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8fb0ac;margin-bottom:6px}
-.a-field input{width:100%;background:#0b181b;border:1px solid rgba(233,245,242,.1);color:#e9f5f2;
-  padding:11px 13px;border-radius:10px;font-family:inherit;font-size:14px;transition:.15s;outline:none}
-.a-field input:focus{border-color:rgba(46,230,195,.6);box-shadow:0 0 0 3px rgba(46,230,195,.15)}
-.pw-wrap{position:relative}
-.pw-wrap input{padding-right:44px}
-.pw-toggle{position:absolute;right:8px;top:0;bottom:0;background:none;border:none;padding:0;margin:0;cursor:pointer;
-  color:#8fb0ac;display:flex;align-items:center;justify-content:center;width:26px;font-size:16px}
-.pw-toggle:hover{color:#e9f5f2}
-.a-err{color:#ff9c8f;font-size:13px;min-height:18px;margin:4px 0 8px}
-.a-ok{color:#8fead4;font-size:13px;margin:4px 0 8px}
-.a-remember{display:flex;align-items:center;gap:8px;font-size:13px;color:#8fb0ac;cursor:pointer;margin:2px 0 14px}
-.a-remember input{width:auto;accent-color:#2ee6c3;cursor:pointer}
-.a-btn{display:inline-flex;align-items:center;justify-content:center;width:100%;
-  background:linear-gradient(135deg,#12695a,#0e9579);color:#eafffa;font-family:var(--fd,'Space Grotesk',sans-serif);
-  font-weight:700;font-size:15px;padding:13px;border-radius:11px;border:none;cursor:pointer;transition:.2s;
-  box-shadow:0 8px 22px rgba(46,230,195,.18)}
-.a-btn:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(46,230,195,.28)}
-.a-btn[disabled]{opacity:.6;cursor:default;transform:none}
-.a-links{display:flex;justify-content:space-between;margin-top:16px;font-size:13.5px;flex-wrap:wrap;gap:8px}
-.a-links a{cursor:pointer;color:#8fead4;text-decoration:none;font-weight:600}
-.a-links a:hover{text-decoration:underline}
-.a-alt{margin-top:14px;font-size:12.5px;color:#8fb0ac;text-align:center}
-.a-note{color:#8fb0ac;font-size:13px;margin-bottom:16px;line-height:1.55}
+}
 </style>
 </head>
 <body>
 <div id="toasts"></div>
 
 <!-- gate -->
-<!-- gate (JobAgent-style sign-in / sign-up / forgot / new-password) -->
-<div id="authWrap">
-  <div class="auth-card">
-    <div class="a-brand">
-      <div class="a-pulse"><span class="dish"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2ee6c3" stroke-width="2" stroke-linecap="round"><path d="M12 2v6m0 4v10M5 8l7 4 7-4"/></svg></span></div>
-      <h1><span class="sb-a">Switch</span><span class="sb-b">Board</span></h1>
-      <p>Your voice-agent control room.</p>
-    </div>
-
-    <!-- sign in -->
-    <div id="p-signin">
-      <div class="a-field"><label>Email</label><input id="siEmail" type="email" placeholder="you@example.com" autocomplete="email"></div>
-      <div class="a-field"><label>Password</label>
-        <div class="pw-wrap"><input id="siPass" type="password" placeholder="••••••••" autocomplete="current-password">
-          <button type="button" class="pw-toggle" data-target="siPass" aria-label="Show password">show</button></div>
-      </div>
-      <div class="a-err" id="siErr"></div>
-      <button class="a-btn" id="siBtn" onclick="doSignin()">Sign in →</button>
-      <div class="a-links">
-        <a onclick="showAuth('forgot')">Forgot password?</a>
-      </div>
-      <div class="a-alt">Agency? <a href="admin.html">Open the Admin panel →</a></div>
-    </div>
-
-    <!-- forgot -->
-    <div id="p-forgot" class="hidden">
-      <p class="a-note">Enter the email on your account and we'll send you a link to reset your password.</p>
-      <div class="a-field"><label>Email</label><input id="fpEmail" type="email" placeholder="you@example.com" autocomplete="email"></div>
-      <div class="a-err" id="fpErr"></div>
-      <div class="a-ok hidden" id="fpOk"></div>
-      <button class="a-btn" id="fpBtn" onclick="doForgot()">Send reset link</button>
-      <div class="a-links"><a onclick="showAuth('signin')">← Back to sign in</a></div>
-    </div>
-
-    <!-- new password -->
-    <div id="p-newpass" class="hidden">
-      <p class="a-note">Enter a new password for your account below.</p>
-      <div class="a-field"><label>New password</label>
-        <div class="pw-wrap"><input id="npPass" type="password" placeholder="Min. 6 characters" autocomplete="new-password">
-          <button type="button" class="pw-toggle" data-target="npPass" aria-label="Show password">show</button></div>
-      </div>
-      <div class="a-field"><label>Confirm new password</label>
-        <div class="pw-wrap"><input id="npPass2" type="password" autocomplete="new-password">
-          <button type="button" class="pw-toggle" data-target="npPass2" aria-label="Show password">show</button></div>
-      </div>
-      <div class="a-err" id="npErr"></div>
-      <button class="a-btn" id="npBtn" onclick="doNewPass()">Update password</button>
-    </div>
-  </div>
-</div>
-
 </div>
 
 <!-- app -->
-<section id="app" class="hidden">
+<section id="app">
   <aside class="c-side">
     <div class="c-brand"><div class="gate-logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2ee6c3" stroke-width="2" stroke-linecap="round"><path d="M12 2v6m0 4v10M5 8l7 4 7-4"/></svg></div><b>SwitchBoard</b></div>
     <nav class="cnav">
@@ -336,8 +224,7 @@ a{color:inherit}
       <span class="live-badge" id="topBadge"><i></i><span id="topBadgeTxt">AGENT LIVE</span></span>
       <span class="conn-chip conn-demo" id="connChip" onclick="showView('control');window.scrollTo(0,0)">DEMO DATA</span>
       <span class="clock" id="clock">--:--:--</span>
-      <a class="top-btn" href="switchboard-admin.html">Admin panel</a>
-      <button class="top-btn" onclick="dbDisconnect()">Sign out</button>
+      <a class="top-btn" href="admin.html">Admin panel</a>
     </header>
     <div class="c-views">
       <div id="connBar"></div>
@@ -503,127 +390,15 @@ const PENDS=()=>DB.connected?live.pending:S.pending;
 /* connect */
 function renderConnBar(){
  const el=$('#connBar');
- if(DB.connected && DB.list && DB.list.length){
-  el.innerHTML='<div class="cb live"><span class="conn-chip conn-live">● LIVE</span>'+
-   '<span style="font-size:12.5px;color:#8fb0ac">Acting as:</span>'+
-   '<select onchange="switchBiz(this.value)">'+DB.list.map(b=>'<option value="'+b.id+'"'+(b.id===DB.biz.id?' selected':'')+'>'+b.name+'</option>').join('')+'</select>'+
-   
-   '<span class="cb-hint" style="width:auto;flex:1">New calls sync every 15 s.</span></div>';
- }else{
-  el.innerHTML='<div class="cb"><b style="color:#ffcf8f;font-size:13px">⚠ Sample data</b>'+
-   '<span class="cb-hint">Sign in to sync with Supabase and go live.</span></div>';
- }
- const chip=$('#connChip');chip.className='conn-chip '+(DB.connected?'conn-live':'conn-demo');
- chip.textContent=DB.connected?'● LIVE':'DEMO DATA';
- $('#sideFoot').innerHTML=DB.connected&&DB.biz
-  ?'Voice agent<br>connected to <b style="color:#8fb0ac">'+(DB.biz.phone||'—')+'</b>'
-  :'Voice agent<br>not connected yet';
-}
-/* ================= AUTH (JobAgent-style) ================= */
-function showAuth(name){
- ['signin','signup','forgot','newpass'].forEach(p=>{
-  const el=document.getElementById('p-'+p); if(el) el.classList.add('hidden');
- });
- const t=document.getElementById('p-'+name); if(t) t.classList.remove('hidden');
- ['siErr','suErr','fpErr','npErr'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='';});
- const fpOk=document.getElementById('fpOk'); if(fpOk){fpOk.textContent='';fpOk.classList.add('hidden');}
-}
-document.addEventListener('click',function(e){
- const t=e.target.closest('.pw-toggle'); if(!t) return;
- const input=document.getElementById(t.getAttribute('data-target')); if(!input) return;
- const showing=input.type==='text';
- input.type=showing?'password':'text';
- t.textContent=showing?'show':'hide';
- t.setAttribute('aria-label',showing?'Show password':'Hide password');
-});
-async function doSignin(){
- if(!DB.sb){toast('Supabase client not ready','bad');return;}
- const email=$('#siEmail').value.trim(), password=$('#siPass').value;
- const err=$('#siErr'), btn=$('#siBtn');
- err.textContent=''; err.className='a-err';
- if(!email||!password){err.textContent='Enter your email and password.';return;}
- btn.disabled=true; btn.textContent='Signing in\u2026';
- try{
-  const {error}=await DB.sb.auth.signInWithPassword({email,password});
-  if(error) throw error;
-  await onSignedIn();
- }catch(e){ err.textContent=e.message||'Wrong email or password.'; btn.disabled=false; btn.textContent='Sign in \u2192'; }
-}
-async function doForgot(){
- if(!DB.sb){toast('Supabase client not ready','bad');return;}
- const email=$('#fpEmail').value.trim();
- const err=$('#fpErr'), ok=$('#fpOk'), btn=$('#fpBtn');
- err.textContent=''; ok.textContent=''; ok.classList.add('hidden');
- if(!email){err.textContent='Enter your email.';return;}
- btn.disabled=true; btn.textContent='Sending\u2026';
- try{
-  await DB.sb.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});
-  ok.textContent='Check your inbox \u2014 if that email is registered, a reset link is on its way.';
-  ok.classList.remove('hidden');
- }catch(e){ err.textContent=e.message||'Could not send the reset link.'; }
- finally{ btn.disabled=false; btn.textContent='Send reset link'; }
-}
-async function doNewPass(){
- if(!DB.sb){toast('Supabase client not ready','bad');return;}
- const pass=$('#npPass').value, pass2=$('#npPass2').value;
- const err=$('#npErr'), btn=$('#npBtn');
- err.textContent='';
- if(pass.length<6){err.textContent='Password needs to be at least 6 characters.';return;}
- if(pass!==pass2){err.textContent='Passwords don\u2019t match.';return;}
- btn.disabled=true; btn.textContent='Updating\u2026';
- try{
-  const r=await DB.sb.auth.updateUser({password:pass});
-  if(r.error) throw r.error;
-  const {data:{session}}=await DB.sb.auth.getSession();
-  if(session){ await onSignedIn(); toast('Password updated','ok'); }
-  else { showAuth('signin'); $('#siErr').className='a-ok'; $('#siErr').textContent='Password updated. Please sign in.'; }
- }catch(e){ err.textContent=e.message||'Could not update password.'; }
- finally{ btn.disabled=false; btn.textContent='Update password'; }
-}
-async function onSignedIn(){
- ['siBtn','suBtn','fpBtn','npBtn'].forEach(id=>{var b=document.getElementById(id);if(b)b.disabled=false;});['siErr','suErr'].forEach(id=>{var e=document.getElementById(id);if(e)e.textContent='';});
- DB.connected=true;
- const {data,error}=await DB.sb.from('sb_businesses').select('*').order('name');
- if(error){toast('Load failed: '+error.message,'bad');return;}
- DB.list=data||[];
- const saved=JSON.parse(localStorage.getItem(CONN)||'{}');
- DB.biz=DB.list.find(b=>b.id===saved.bizId)||DB.list[0]||null;
- if(!DB.biz){enterApp();renderConnBar();toast('No business is linked to your account. Ask your admin to add one.','warn');return;}
- localStorage.setItem(CONN,JSON.stringify({bizId:DB.biz.id}));
- syncBiz();enterApp();renderConnBar();toast('✓ Signed in','ok');await refreshLive();
-}
-async function dbDisconnect(){
- try{if(DB.sb)await DB.sb.auth.signOut();}catch(e){}
- localStorage.removeItem(CONN);
- DB.connected=false;DB.list=[];DB.biz=null;
- renderConnBar();signOut();toast('Signed out','warn');
+ if(el) el.innerHTML='<div class="cb"><b style="color:#ffcf8f;font-size:13px">⚠ Sample data</b><span class="cb-hint">Local demo mode.</span></div>';
+ const chip=$('#connChip'); if(chip){chip.className='conn-chip conn-demo';chip.textContent='DEMO DATA';}
+ const sf=$('#sideFoot'); if(sf) sf.innerHTML='Voice agent<br>local demo only';
 }
 function syncBiz(){if(!DB.biz)return;
  S.bizName=DB.biz.name;S.bizOwner=DB.biz.owner||'Owner';S.bizPhone=DB.biz.phone||'+1 (—) ———';
  S.mainOn=!!DB.biz.vapi_enabled;if(DB.biz.fallback_phone)S.fallback=DB.biz.fallback_phone;save();}
-async function switchBiz(id){DB.biz=DB.list.find(b=>b.id===id)||DB.biz;
- const c=JSON.parse(localStorage.getItem(CONN)||'{}');c.bizId=id;localStorage.setItem(CONN,JSON.stringify(c));
- syncBiz();await refreshLive();toast('Now acting as '+DB.biz.name,'ok');}
-async function refreshLive(){
- if(!DB.connected)return;
- const sb=DB.sb,cid=DB.biz.id;
- const {data:b}=await sb.from('sb_businesses').select('*').eq('id',cid).maybeSingle();
- if(b){DB.biz=b;syncBiz();}
- const [c,bk,od,pe]=await Promise.all([
-  sb.from('sb_calls').select('*').eq('business_id',cid).order('started_at',{ascending:false}).limit(100),
-  sb.from('sb_bookings').select('*').eq('business_id',cid).order('created_at',{ascending:false}).limit(60),
-  sb.from('sb_orders').select('*').eq('business_id',cid).order('created_at',{ascending:false}).limit(60),
-  sb.from('sb_pending_changes').select('*').eq('business_id',cid).order('created_at',{ascending:false})]);
- live.calls=(c.data||[]).map(mapCall);
- live.bookings=(bk.data||[]).map(r=>({id:r.id,name:r.caller_name||'—',svc:r.service||'Booking',when:[r.date,r.time].filter(Boolean).join(' · ')||'TBD',note:r.note||'',status:r.status||'Confirmed'}));
- live.orders=(od.data||[]).map(r=>({id:r.order_ref||('#'+r.id.slice(0,5)),name:r.caller_name||'—',lines:(r.items||[]).map(i=>[i.name,i.price||0]),total:+r.total||0,pickup:r.pickup?'Pickup · '+r.pickup:'ASAP',status:r.status||'New'}));
- live.pending=(pe.data||[]).map(p=>({id:p.id,client:DB.biz.name,desc:p.description,pushed:p.pushed}));
- renderAll();
-}
 
 /* nav */
-function enterApp(){var g=document.getElementById('authWrap')||document.getElementById('gate');if(g)g.classList.add('hidden');$('#app').classList.remove('hidden');renderAll();renderConnBar();}
-function signOut(){$('#app').classList.add('hidden');var g=document.getElementById('authWrap')||document.getElementById('gate');if(g)g.classList.remove('hidden');showAuth('signin');}
 function showView(v){$$('.c-view').forEach(x=>x.classList.toggle('on',x.id==='view-'+v));
  $$('.cnav button').forEach(b=>b.classList.toggle('act',b.dataset.view===v));
  const _rmap={control:renderControl,calls:renderCalls,bookings:renderBookings,orders:renderOrders,schedule:renderSchedule}; if(_rmap[v]) _rmap[v]();}
@@ -781,7 +556,7 @@ async function pushSchedule(){
  if(DB.connected){
   const {error}=await DB.sb.from('sb_pending_changes').insert({business_id:DB.biz.id,biz_name:DB.biz.name,description:desc});
   if(error){toast('Insert failed: '+error.message,'bad');return;}
-  toast('Schedule sent — admin will mark it pushed to agent','ok');refreshLive();return;}
+  toast('Schedule sent — admin will mark it pushed to agent','ok');/*live disabled*/return;}
  if(!S.pending)S.pending=[];
  S.pending.unshift({id:uid(),client:S.bizName,desc,pushed:false});save();renderSchedule();
  toast('Schedule sent — admin will mark it pushed to agent ↗','ok');}
@@ -794,7 +569,7 @@ async function makeCall(){
    sentiment:'Neutral',summary:'Test entry from SwitchBoard to verify the write path.',
    structured:{intent:'enquiry',sentiment:'Neutral',topic:'Pipeline test'},handled:true});
   if(error){toast('Insert failed: '+error.message,'bad');return;}
-  toast('Test call written ✓','ok');setTimeout(refreshLive,700);return;}
+  toast('Test call written ✓','ok');/*live disabled*/return;}
  const now=Date.now(),name=pick(NAMES),phone=genPhone();
  if(!S.mainOn){S.calls.unshift({id:uid(),intent:'missed',name,phone,at:now,dur:0,handled:false,sent:'Neutral'});
   save();renderControl();renderCalls();toast('✕ Missed call from '+name+' — Agent is off','bad');return;}
@@ -816,7 +591,7 @@ async function makeCall(){
 /* tickers */
 setInterval(()=>{const n=new Date();$('#clock').textContent=fmtTime(n)+':'+String(n.getSeconds()).padStart(2,'0');},1000);
 setInterval(()=>{
- if(DB.connected){refreshLive();return;}
+ if(DB.connected){/*live disabled*/return;}
  if($('#app').classList.contains('hidden')||!S.mainOn)return;
  if(Math.random()<.5)makeCall();},15000);
 setInterval(()=>{
@@ -826,21 +601,7 @@ setInterval(()=>{
  if(S.mode==='schedule'&&!DB.connected&&!$('#app').classList.contains('hidden'))applyScheduleNow(false);},5000);
 
 /* init */
-loadLocal();renderConnBar();
-(async function(){
- // Live project (anon key is public/client-side by design; RLS enforces per-user isolation)
- const SUPA={url:'https://suiilufpgjkbiawetttd.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1aWlsdWZwZ2prYmlhd2V0dHRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyMDUwNzIsImV4cCI6MjA5ODc4MTA3Mn0.tNISiQiyVFZxbP72TMxIy1IWiNkvHrjLqCEKjwh8MKQ'};
- if(!window.supabase){toast('Supabase library failed to load','bad');return;}
- DB.sb=window.supabase.createClient(SUPA.url,SUPA.key,{auth:{persistSession:true,autoRefreshToken:true}});
- // resume existing session if present
- const {data:{session}}=await DB.sb.auth.getSession();
- if(session){await onSignedIn();}
- // react to future sign-in / sign-out events
- DB.sb.auth.onAuthStateChange((event)=>{
-  if(event==='SIGNED_OUT'){DB.connected=false;DB.list=[];DB.biz=null;renderConnBar();signOut();}
-  if(event==='PASSWORD_RECOVERY'){var g=document.getElementById('authWrap');if(g)g.classList.remove('hidden');$('#app').classList.add('hidden');showAuth('newpass');}
- });
-})();
+loadLocal();renderConnBar();renderAll();
 </script>
 </body>
 </html>

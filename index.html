@@ -673,7 +673,11 @@ async function doNewPass(){
  finally{ btn.disabled=false; btn.textContent='Update password'; }
 }
 async function onSignedIn(){
- authMsg('','');$('#authSubmit').disabled=false;
+ // clear any lingering messages / button states on the sign-in panel
+ ['siErr','suErr','fpErr','npErr'].forEach(id=>{const el=document.getElementById(id);if(el){el.textContent='';el.className=el.id==='siErr'?'a-err':(el.className||'a-err');}});
+ ['siBtn','suBtn','fpBtn','npBtn'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=false;});
+ const _si=document.getElementById('siBtn'); if(_si) _si.textContent='Sign in \u2192';
+ const _su=document.getElementById('suBtn'); if(_su) _su.textContent='Register';
  DB.connected=true;
  const {data,error}=await DB.sb.from('sb_businesses').select('*').order('name');
  if(error){toast('Load failed: '+error.message,'bad');return;}
